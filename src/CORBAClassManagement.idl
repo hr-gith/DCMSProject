@@ -3,10 +3,10 @@ module CORBAClassManagement
 interface CORBAClassManagement{
 	 boolean login (in string managerID) ;
 	 void logout () ;
-	 boolean createTRecord(in string managerID,in string recordID, in string firstName, in string lastName, in string address, in string phone, in string specialization, in string location);
+	 boolean createTRecord(in string managerID, in string firstName, in string lastName, in string address, in string phone, in string specialization, in string location);
 	 string getRecordCounts() ;
 	 boolean editRecord(in string managerID, in string recordID, in string fieldName, in string newValue);
-	 boolean createSRecord(in string managerID,in string recordID, in string firstName, in string lastName, in string coursesRegistered, in boolean status, in string statusDate);
+	 boolean createSRecord(in string managerID, in string firstName, in string lastName, in string coursesRegistered, in boolean status, in string statusDate);
 	boolean transferRecord(in string managerID,in string recordID,in string remoteCenterServerName);
 	};
 };

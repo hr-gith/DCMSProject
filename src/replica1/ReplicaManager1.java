@@ -1,7 +1,7 @@
 package replica1;
 
-import CORBAClassManagement.CORBAClassManagement;
-import CORBAClassManagement.CORBAClassManagementHelper;
+import FrontEndToReplicaManager.FrontEndToReplicaManager;
+import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import classManagement.Record;
 import classManagement.TeacherRecord;
 import replica1.servers.CenterServers;
@@ -24,7 +24,7 @@ import org.omg.PortableServer.POAHelper;
 public class ReplicaManager1 extends ReplicaManager {
 	int UDPPort;
 	String serverName = null;
-	static CORBAClassManagement callServer;
+	static FrontEndToReplicaManager callServer;
 
 	public ReplicaManager1() {
 		this.leaderStatus = false;
@@ -53,7 +53,7 @@ public class ReplicaManager1 extends ReplicaManager {
 			MTLServer.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(MTLServer);
-			CORBAClassManagement href = CORBAClassManagementHelper.narrow(ref);
+			FrontEndToReplicaManager href = FrontEndToReplicaManagerHelper.narrow(ref);
 			// bind the Object Reference in Naming
 			String name = "MTLServer";
 			NameComponent path[] = ncRef.to_name(name);
@@ -65,7 +65,7 @@ public class ReplicaManager1 extends ReplicaManager {
 			LVLServer.setOrb(orb);
 
 			ref = rootpoa.servant_to_reference(LVLServer);
-			href = CORBAClassManagementHelper.narrow(ref);
+			href = FrontEndToReplicaManagerHelper.narrow(ref);
 
 			name = "LVLServer";
 			path = ncRef.to_name(name);
@@ -76,7 +76,7 @@ public class ReplicaManager1 extends ReplicaManager {
 			CenterServers DDOServer = new CenterServers("DDO", 8892, 9993);
 			DDOServer.setOrb(orb);
 			ref = rootpoa.servant_to_reference(DDOServer);
-			href = CORBAClassManagementHelper.narrow(ref);
+			href = FrontEndToReplicaManagerHelper.narrow(ref);
 			name = "DDOServer";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
@@ -119,7 +119,7 @@ public class ReplicaManager1 extends ReplicaManager {
 					String name = serverName + "Server"; // "rmi://localhost:" +
 															// serverPort + "/"
 															// + serverName;
-					callServer = CORBAClassManagementHelper.narrow(ncRef.resolve_str(name));
+					callServer = FrontEndToReplicaManagerHelper.narrow(ncRef.resolve_str(name));
 					if (reqReceived.typeOfRequest == 1) {
 						// TCreate teacher
 						boolean createTrecordSuccess = callServer.createTRecord(reqReceived.managerID,

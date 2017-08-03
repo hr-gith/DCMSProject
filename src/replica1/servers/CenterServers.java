@@ -21,8 +21,9 @@ import classManagement.TeacherRecord;
 import replica1.utilities.EventLogger;
 import replica1.utilities.SequenceIdGenerator;
 import CORBAClassManagement.CORBAClassManagementPOA;
+import FrontEndToReplicaManager.FrontEndToReplicaManagerPOA;
 
-public class CenterServers extends CORBAClassManagement.CORBAClassManagementPOA implements Runnable {
+public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnable {
 
 	public String serverName = "";
 	public int serverPort = 0;
