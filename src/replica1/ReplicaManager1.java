@@ -12,16 +12,13 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
-public class ReplicaManager1 extends ReplicaManager {
 
-	public ReplicaManager1() {
-		this.leaderStatus = false;
+public class ReplicaManager1 extends ReplicaManager{
+
+	public ReplicaManager1(){
+		this.leaderStatus = false;		
 	}
-
-	public void run() {
-
-	}
-
+	
 	@Override
 	public void start(String arg[]) {
 		// Starting all servers---
@@ -81,5 +78,6 @@ public class ReplicaManager1 extends ReplicaManager {
 			e.printStackTrace(System.out);
 		}
 	}
+
 
 }

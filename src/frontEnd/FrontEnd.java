@@ -7,11 +7,15 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
+import classManagement.Record;
+import classManagement.TeacherRecord;
+import replicaManagement.*;
 import CORBAClassManagement.*;
 
 public class FrontEnd extends CORBAClassManagementPOA implements Runnable{
 
 	public int UDPPort = 0;
+	public static String leaderInfo;
 
 	private ORB orb;
 
@@ -26,44 +30,83 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable{
 		this.UDPPort = udpPort;
 	}
 	
+	
 	public boolean login(String managerID) {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.managerID = managerID;
+		req.typeOfRequest = Request.LOGIN_REQUEST;
+		FIFOQueue.getInstance().push(req);
+		
+		///?????????????????how should we get response
 		return false;
 	}
 
 	public void logout() {
-		// TODO Auto-generated method stub
-		
+		Request req = new Request ();
+		req.typeOfRequest = Request.LOGIN_REQUEST;
+		FIFOQueue.getInstance().push(req);				
 	}
 
 	public boolean createTRecord(String managerID, String firstName,
 			String lastName, String address, String phone,
 			String specialization, String location) {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.typeOfRequest = Request.CREATE_TEACHER_REQUEST;
+		req.managerID = managerID;
+		req.firstName = firstName;
+		req.lastName = lastName;
+		req.address = address;
+		req.phone = phone;
+		req.specialization = specialization;
+		req.location = location;
+		FIFOQueue.getInstance().push(req);
 		return false;
 	}
 
 	public String getRecordCounts() {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.typeOfRequest = Request.GET_COUNT_REQUEST;
+		FIFOQueue.getInstance().push(req);
+
 		return null;
 	}
 
 	public boolean editRecord(String managerID, String recordID,
 			String fieldName, String newValue) {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.typeOfRequest = Request.EDIT_REQUEST;
+		req.managerID = managerID;
+		req.recordID = recordID;
+		req.fieldName = fieldName;
+		req.newValue = newValue;
+		FIFOQueue.getInstance().push(req);		
+		
 		return false;
 	}
 
 	public boolean createSRecord(String managerID, String firstName,
 			String lastName, String coursesRegistered, boolean status,
 			String statusDate) {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.typeOfRequest = Request.CREATE_STUDENT_REQUEST;
+		req.managerID = managerID;
+		req.firstName = firstName;
+		req.lastName = lastName;
+		req.courseRegistered = coursesRegistered;
+		req.status = status;
+		FIFOQueue.getInstance().push(req);		
 		return false;
 	}
 
 	public boolean transferRecord(String managerID, String recordID,
 			String remoteCenterServerName) {
-		// TODO Auto-generated method stub
+		Request req = new Request ();
+		req.typeOfRequest = Request.TRANSFER_REQUEST;
+		req.managerID = managerID;
+		req.recordID = recordID;
+		req.remoteCenterServerName = remoteCenterServerName;
+		FIFOQueue.getInstance().push(req);		
+
 		return false;
 	}
 
@@ -89,7 +132,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable{
 
 			// Create object reference of "MTL Server" and bind it to the
 			// registry(name service)
-			FrontEnd frontEnd = new FrontEnd(9999);
+			FrontEnd frontEnd = new FrontEnd(9000);
 			frontEnd.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);

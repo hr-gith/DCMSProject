@@ -7,4 +7,5 @@ public abstract class ReplicaManager {
 	public boolean leaderStatus;
 	
 	public abstract void start(String argp[]);
+	
 }
