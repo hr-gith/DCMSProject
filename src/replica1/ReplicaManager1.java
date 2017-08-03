@@ -2,8 +2,17 @@ package replica1;
 
 import CORBAClassManagement.CORBAClassManagement;
 import CORBAClassManagement.CORBAClassManagementHelper;
+import classManagement.Record;
+import classManagement.TeacherRecord;
 import replica1.servers.CenterServers;
 import replicaManagement.ReplicaManager;
+import replicaManagement.Request;
+import staticData.Ports;
+
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
@@ -12,13 +21,15 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
+public class ReplicaManager1 extends ReplicaManager {
+	int UDPPort;
+	String serverName = null;
+	static CORBAClassManagement callServer;
 
-public class ReplicaManager1 extends ReplicaManager{
-
-	public ReplicaManager1(){
-		this.leaderStatus = false;		
+	public ReplicaManager1() {
+		this.leaderStatus = false;
 	}
-	
+
 	@Override
 	public void start(String arg[]) {
 		// Starting all servers---
@@ -79,5 +90,58 @@ public class ReplicaManager1 extends ReplicaManager{
 		}
 	}
 
+	public void run() {// for receiving requests
+		DatagramSocket socket = null;
+		try {
+			socket = new DatagramSocket(this.UDPPort);
+			DatagramPacket reply = null;
+			byte[] buffer = new byte[65536];
+			while (true) {
+
+				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+				socket.receive(request);
+				byte[] requestByteArray = request.getData();
+				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(requestByteArray);
+				ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+				Request reqReceived = (Request) objectInputStream.readObject();
+				if (request.getPort() == Ports.FEUDPPort) {
+					// TODO: multicast to all servers
+				} else {
+					// create and initialize the ORB
+					String nullString[] = null;
+					ORB orb = ORB.init(nullString, null);
+					// get the root naming context
+					org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+					// Use NamingContextExt instead of NamingContext. This is
+					// part of the Interoperable naming Service.
+					NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+					// resolve the Object Reference in Naming
+					String name = serverName + "Server"; // "rmi://localhost:" +
+															// serverPort + "/"
+															// + serverName;
+					callServer = CORBAClassManagementHelper.narrow(ncRef.resolve_str(name));
+					if (reqReceived.typeOfRequest == 1) {
+						// TCreate teacher
+						boolean createTrecordSuccess = callServer.createTRecord(reqReceived.managerID,
+								reqReceived.recordID, reqReceived.firstName, reqReceived.lastName, reqReceived.address,
+								reqReceived.phone, reqReceived.specialization, reqReceived.location);
+						if (createTrecordSuccess) {
+							// logger.setMessage("Teacher Record has been
+							// created successfully.");
+							System.out.println("Teacher is added successfully.");
+						} else {
+							// logger.setMessage("Failed: Teacher Record has not
+							// been created.");
+							System.out.println("Error: Teacher is not added.");
+						}
+					} else if (reqReceived.typeOfRequest == 2) {
+
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
 
 }

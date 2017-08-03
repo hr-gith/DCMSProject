@@ -13,7 +13,7 @@ public class Request implements Serializable{
 	public final static int GET_COUNT_REQUEST = 5;
 	public final static int LOGOUT_REQUEST = 6;
 
-	//TO-DO: DESTINATION FOR TRANSFER
+	//TODO: DESTINATION FOR TRANSFER
 	public int typeOfRequest;
 	public String managerID;
 	//record attributes
