@@ -135,8 +135,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	public boolean createTRecord(String managerID, String recordID, String firstName, String lastName, String address,
 			String phone, String specialization, String location) {
-		String teacherID = SequenceIdGenerator.getInstance().getID("TR");
-		TeacherRecord teacherRecord = new TeacherRecord(managerID, teacherID, firstName, lastName, address, phone,
+		//String teacherID = SequenceIdGenerator.getInstance().getID("TR");
+		TeacherRecord teacherRecord = new TeacherRecord(managerID, recordID, firstName, lastName, address, phone,
 				specialization, location);
 		// EventLogger logger = new EventLogger(this.serverName);
 
@@ -152,8 +152,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	public boolean createSRecord(String managerID, String recordID, String firstName, String lastName,
 			String courseRegisterd, boolean status, String statusDate) {
-		String studentID = SequenceIdGenerator.getInstance().getID("SR");
-		StudentRecord studentRecord = new StudentRecord(managerID, studentID, firstName, lastName, courseRegisterd,
+		//String studentID = SequenceIdGenerator.getInstance().getID("SR");
+		StudentRecord studentRecord = new StudentRecord(managerID, recordID, firstName, lastName, courseRegisterd,
 				status, statusDate);
 		// EventLogger logger = new EventLogger(this.serverName);
 		// TO-DO: add who in log message
