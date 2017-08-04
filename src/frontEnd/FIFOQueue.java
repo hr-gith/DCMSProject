@@ -27,8 +27,8 @@ public class FIFOQueue implements Runnable {
 
 	}
 
-	public void push(Request R) {
-		myQ.add(R);
+	public boolean push(Request R) {
+		return myQ.add(R);
 
 	}
 

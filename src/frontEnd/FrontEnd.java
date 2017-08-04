@@ -19,12 +19,13 @@ import classManagement.Record;
 import classManagement.TeacherRecord;
 import replica1.ReplicaManager1;
 import replicaManagement.*;
+import staticData.Ports;
 import CORBAClassManagement.*;
 
 public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
-	public int UDPPort = 9000;
-	public static String leaderInfo;
+	public int UDPPort;
+	public static int leaderInfo;
 
 	private ORB orb;
 
@@ -40,22 +41,6 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		this.UDPPort = udpPort;
 	}
 
-	public boolean login(String managerID) {
-		Request req = new Request();
-		req.managerID = managerID;
-		req.typeOfRequest = Request.LOGIN_REQUEST;
-		FIFOQueue.getInstance().push(req);
-
-		/// ?????????????????how should we get response
-		return false;
-	}
-
-	public void logout() {
-		Request req = new Request();
-		req.typeOfRequest = Request.LOGIN_REQUEST;
-		FIFOQueue.getInstance().push(req);
-	}
-
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
 			String specialization, String location) {
 		Request req = new Request();
@@ -67,8 +52,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.phone = phone;
 		req.specialization = specialization;
 		req.location = location;
-		FIFOQueue.getInstance().push(req);
-		return false;
+		return FIFOQueue.getInstance().push(req);
 	}
 
 	public String getRecordCounts() {
@@ -86,9 +70,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.recordID = recordID;
 		req.fieldName = fieldName;
 		req.newValue = newValue;
-		FIFOQueue.getInstance().push(req);
-
-		return false;
+		return FIFOQueue.getInstance().push(req);
 	}
 
 	public boolean createSRecord(String managerID, String firstName, String lastName, String coursesRegistered,
@@ -100,8 +82,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.lastName = lastName;
 		req.courseRegistered = coursesRegistered;
 		req.status = status;
-		FIFOQueue.getInstance().push(req);
-		return false;
+		return FIFOQueue.getInstance().push(req);		 
 	}
 
 	public boolean transferRecord(String managerID, String recordID, String remoteCenterServerName) {
@@ -110,9 +91,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.managerID = managerID;
 		req.recordID = recordID;
 		req.remoteCenterServerName = remoteCenterServerName;
-		FIFOQueue.getInstance().push(req);
-
-		return false;
+		return FIFOQueue.getInstance().push(req);
 	}
 
 	public void run() {
@@ -200,7 +179,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 							
 							else {
 								if (replica_info.get(3667) == null)
-									RM1.start(null);
+									RM1.start();
 								else if (replica_info.get(3668) == null) {
 									// RM2.start(null);
 								}
@@ -213,9 +192,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 						
 					}
-				}
-				
-				
+				}				
 	}
 		} catch (SocketException ex) {
 			System.out.println("Socket " + ex.getMessage());
@@ -256,7 +233,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 			// Create object reference of "MTL Server" and bind it to the
 			// registry(name service)
-			FrontEnd frontEnd = new FrontEnd(9000);
+			FrontEnd frontEnd = new FrontEnd(Ports.FEUDPPort);
 			frontEnd.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);

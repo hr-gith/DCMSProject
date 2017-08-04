@@ -55,6 +55,10 @@ public class ManagerClient {
 				System.out.println("Error: Manager ID is invalid.");
 			} else {
 				valid = true;
+				EventLogger logger = new EventLogger(managerID);
+
+				logger.setMessage("Manager : " + managerID
+						+ " has Logged in..");
 				if (managerID.toUpperCase().startsWith("MTL")) {
 					serverName = "MTL";
 					serverPort = 8890;
@@ -82,14 +86,7 @@ public class ManagerClient {
 					String name = "FrontEnd"; 
 					callServer = CORBAClassManagementHelper.narrow(ncRef
 							.resolve_str(name));
-					boolean loginSucess = callServer.login(managerID);
-					EventLogger logger = new EventLogger(managerID);
-					if (loginSucess) {
-						logger.setMessage("Manager : " + managerID
-								+ " has Logged in..");
-					} else {
-						continue;
-					}
+					
 					while (valid) {
 						listOptions();
 						Scanner options = new Scanner(System.in);
@@ -352,7 +349,6 @@ public class ManagerClient {
 							Scanner exitSc = new Scanner(System.in);
 							String exitCgStr = exitSc.nextLine();
 							if (exitCgStr.toUpperCase().trim().equals("Y")) {
-								callServer.logout();
 								logger.setMessage("Manager : " + managerID
 										+ " has Logged out..");
 								System.out.println("User logged out");
@@ -419,7 +415,6 @@ public class ManagerClient {
 		System.out.println("3. Get Record Counts");
 		System.out.println("4. Edit Record");
 		System.out.println("5. Transfer Record");
-
 		System.out.println("6. Log out");
 	}
 }
