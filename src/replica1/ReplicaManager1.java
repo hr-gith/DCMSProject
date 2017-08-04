@@ -1,11 +1,11 @@
 package replica1;
 
+
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import classManagement.Record;
 import classManagement.TeacherRecord;
 import replica1.servers.CenterServers;
-import replicaManagement.ReplicaManager;
 import replicaManagement.Request;
 import staticData.Ports;
 
@@ -29,8 +29,10 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
-public class ReplicaManager1 extends ReplicaManager implements Runnable {
-
+public class ReplicaManager1 implements Runnable {
+	public static int id= 1;
+	public boolean leaderStatus;
+	public int UDPPort;
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
 
@@ -39,9 +41,9 @@ public class ReplicaManager1 extends ReplicaManager implements Runnable {
 		this.leaderStatus = false;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String arg[]) {
 		ReplicaManager1 rm1 = new ReplicaManager1();
-		rm1.startServers();
+		CenterServers.main(null);
 		(new Thread(rm1)).start();
 		System.out.println("RM 1 is started..");
 	}

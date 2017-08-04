@@ -161,7 +161,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
 		// To start the RM1
-		ReplicaManager1 RM1 = new ReplicaManager1();
+		//ReplicaManager1 RM1 = new ReplicaManager1();
 		// RM1.start(null);
 		//RM1.HearBeat();
 
@@ -229,8 +229,10 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 								this.leaderPort = keyValue;								
 							} 
 							else {
-								if (replica_info.get(Ports.RM2UDPPort) == null)
-									RM1.startServers();
+								if (replica_info.get(Ports.RM2UDPPort) == null){
+									ReplicaManager1 RM1 = new ReplicaManager1();
+									RM1.main(null);
+								}
 								else if (replica_info.get(3668) == null) {
 									// RM2.startServers(null);
 								}
