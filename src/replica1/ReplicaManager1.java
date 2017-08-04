@@ -16,7 +16,6 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -30,20 +29,27 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
-public class ReplicaManager1 extends ReplicaManager {
+public class ReplicaManager1 extends ReplicaManager implements Runnable {
 
-	int UDPPort;
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
 
 	public ReplicaManager1() {
+		this.UDPPort = Ports.RM1UDPPort;
 		this.leaderStatus = false;
 	}
 
+	public static void main(String[] args) {
+		ReplicaManager1 rm1 = new ReplicaManager1();
+		rm1.startServers();
+		(new Thread(rm1)).start();
+		System.out.println("RM 1 is started..");
+	}
+	
 	public void run() {// for receiving requests
 		DatagramSocket socket = null;
 		try {
-			String result = "";
+			String result = "", result2 = "", result3 = "";
 			socket = new DatagramSocket(this.UDPPort);
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
@@ -56,7 +62,6 @@ public class ReplicaManager1 extends ReplicaManager {
 				Request reqReceived = (Request) objectInputStream.readObject();
 				if (request.getPort() == Ports.FEUDPPort) {
 					// TODO: multicast to all servers
-					String result2 = null;
 
 					InetAddress ahost = InetAddress.getByName("localhost");
 					DatagramPacket request2 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
@@ -65,20 +70,21 @@ public class ReplicaManager1 extends ReplicaManager {
 					socket.send(request2);
 					DatagramPacket reply2 = new DatagramPacket(buffer, buffer.length);
 					socket.receive(reply2);
-					byte[] resultRecieved = reply.getData();
-					String output = new String(resultRecieved);
-					if (output.startsWith("true")) {
+					byte[] resultRecieved2 = reply.getData();
+					result2 = new String(resultRecieved2);
+					if (result2.startsWith("true")) {
+
 						DatagramPacket request3 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
 								Ports.RM3UDPPort);
 						socket.send(request3);
 						DatagramPacket reply3 = new DatagramPacket(buffer, buffer.length);
 						socket.receive(reply3);
-						byte[] resultRecieved2 = reply.getData();
-						result = new String(resultRecieved2);
+						byte[] resultRecieved3 = reply.getData();
+						result3 = new String(resultRecieved3);
 					}
 
 				} // received on its own
-				if (result.startsWith("true")) {
+				if (result3.startsWith("true")) {
 					serverName = reqReceived.managerID.substring(0, 3);
 					System.out.println("Server Name is" + serverName);
 					// create and initialize the ORB
@@ -90,9 +96,8 @@ public class ReplicaManager1 extends ReplicaManager {
 					// part of the Interoperable naming Service.
 					NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 					// resolve the Object Reference in Naming
-					String name = serverName + "Server"; // "rmi://localhost:" +
-															// serverPort + "/"
-															// + serverName;
+					String name = serverName + "Server"; 
+					
 					callServer = FrontEndToReplicaManagerHelper.narrow(ncRef.resolve_str(name));
 					if (reqReceived.typeOfRequest == 1) {
 						// TCreate teacher
@@ -102,12 +107,12 @@ public class ReplicaManager1 extends ReplicaManager {
 						if (createTrecordSuccess) {
 							// logger.setMessage("Teacher Record has been
 							// created successfully.");
-							System.out.println("Teacher is added successfully.");
+							System.out.println("RM:Teacher is added successfully.");
 							result = "true";
 						} else {
 							// logger.setMessage("Failed: Teacher Record has not
 							// been created.");
-							System.out.println("Error: Teacher is not added.");
+							System.out.println("RM:Error: Teacher is not added.");
 							result = "false";
 						}
 					} else if (reqReceived.typeOfRequest == 2) {
@@ -117,12 +122,12 @@ public class ReplicaManager1 extends ReplicaManager {
 						if (createSrecordSucess) {
 							// logger.setMessage("Student Record has been
 							// created successfully.");
-							System.out.println("Student is added successfully.");
+							System.out.println("RM:Student is added successfully.");
 							result = "true";
 						} else {
 							// logger.setMessage("Failed: Student Record has not
 							// been created.");
-							System.out.println("Error: Student is not added.");
+							System.out.println("RM:Error: Student is not added.");
 							result = "false";
 						}
 					} else if (reqReceived.typeOfRequest == 3) {
@@ -131,12 +136,12 @@ public class ReplicaManager1 extends ReplicaManager {
 							// logger.setMessage("Records edited" + " Record
 							// field -'" + fieldName + "' Record Value - '"
 							// + newValue + "'");
-							System.out.println("Record is successfully edited.");
+							System.out.println("RM:Record is successfully edited.");
 							result = "true";
 						} else {
 							// logger.setMessage("Failed: Unable to edit record
 							// " + recordIDEdit);
-							System.out.println("Record is not existed or new value is not valid");
+							System.out.println("RM:Record is not existed or new value is not valid");
 							result = "false";
 						}
 					} else if (reqReceived.typeOfRequest == 4) {
@@ -145,13 +150,13 @@ public class ReplicaManager1 extends ReplicaManager {
 							// logger.setMessage(
 							// "Record ID: " + recordTransfer + " has been moved
 							// to location " + transferLoc);
-							System.out.println("Transfer successfull of Record:" + reqReceived.recordID + " to location"
+							System.out.println("RM:Transfer successfull of Record:" + reqReceived.recordID + " to location"
 									+ reqReceived.location);
 							result = "true";
 						} else {
 							// logger.setMessage("Transfer of Record " +
 							// recordTransfer + " has been failed.");
-							System.out.println("Transfer unsuccessfull of Record:" + reqReceived.recordID);
+							System.out.println("RM:Transfer unsuccessfull of Record:" + reqReceived.recordID);
 							result = "false";
 						}
 					} else if (reqReceived.typeOfRequest == 5) {
@@ -160,15 +165,9 @@ public class ReplicaManager1 extends ReplicaManager {
 						String recordInfo = callServer.getRecordCounts();
 						// logger.setMessage("Server response: (Total record
 						// number: " + recordInfo + " )");
-						System.out.println("Records are: " + recordInfo);
+						System.out.println("RM:Records are: " + recordInfo);
 						result = "true" + recordInfo;
-					} else if (reqReceived.typeOfRequest == 6) {
-						callServer.logout();
-						// logger.setMessage("Manager : " + managerID + " has
-						// Logged out..");
-						System.out.println("User logged out");
-						result = "true";
-					}
+					} 
 				}
 				// send reply back
 				reply = new DatagramPacket(result.getBytes(), result.getBytes().length, request.getAddress(),
@@ -183,7 +182,7 @@ public class ReplicaManager1 extends ReplicaManager {
 	public void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		TimerTask task = new TimerTask() {
+		/*TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -193,17 +192,17 @@ public class ReplicaManager1 extends ReplicaManager {
 				try {
 					datagramSocket = new DatagramSocket();
 					System.out.println("I am in try");
-					ReplicaManager1 dummy = new ReplicaManager1();
+					//ReplicaManager1 dummy = new ReplicaManager1();
 
-					String message = "I Am Alive!" + dummy.id + "!3666";
-					id++;
+					//String message = "I Am Alive!" + dummy.id + "!3666";
+					//id++;
+					String message = "I Am Alive!"+ id + "!" + Ports.RM1UDPPort;
 
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
-					int portnumber = 9000;
 
 					DatagramPacket sendRequestpacket = new DatagramPacket(bufferSend, bufferSend.length, address,
-							portnumber);
+							Ports.FEUDPPort);
 					datagramSocket.send(sendRequestpacket);
 					System.out.println("sent packet");
 
@@ -214,13 +213,11 @@ public class ReplicaManager1 extends ReplicaManager {
 					System.err.println("ERROR: " + e);
 					e.printStackTrace(System.out);
 				}
-
 			}
-
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 30000, 10000);
-
+*/
 	}
 
 }

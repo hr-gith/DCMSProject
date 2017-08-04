@@ -58,21 +58,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		this.logger = new EventLogger(this.serverName);
 	}
 
-	public boolean login(String managerID) {
-		if (managerID.startsWith(this.serverName)) {
-			this.managerID = managerID;
-			logger.setMessage(managerID + " has logged in. ");
-			return true;
-		}
-		return false;
-	}
-
-	public void logout() {
-		this.managerID = "";
-		// EventLogger logger = new EventLogger(this.serverName);
-		logger.setMessage(managerID + " has logged out. ");
-	}
-
+	
 	public static void main(String[] args) {
 		// Starting all servers---
 		try {

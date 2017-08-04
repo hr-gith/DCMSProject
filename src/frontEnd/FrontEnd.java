@@ -29,7 +29,7 @@ import CORBAClassManagement.*;
 public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 	public int UDPPort;
-	public static int leaderPort = 0;
+	public static int leaderPort = Ports.RM1UDPPort;//0;
 
 	private ORB orb;
 
@@ -41,8 +41,8 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		this.orb = orb;
 	}
 
-	public FrontEnd(int udpPort) {
-		this.UDPPort = udpPort;
+	public FrontEnd() {
+		this.UDPPort = Ports.FEUDPPort;
 	}
 
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
@@ -128,12 +128,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				ObjectOutput oo = new ObjectOutputStream(bos);
 				oo.writeObject(req);
 				oo.close();
-				socket = new DatagramSocket();
+				socket = new DatagramSocket(this.UDPPort);
 				InetAddress host = InetAddress.getByName("localhost");
 				byte[] serializedMsg = bos.toByteArray();
 				DatagramPacket request = new DatagramPacket(serializedMsg,
 						serializedMsg.length, host,
-						FrontEnd.leaderPort);
+						this.leaderPort);
 				socket.send(request);
 
 				// send reply back to client
@@ -142,7 +142,6 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						buffer.length);
 				socket.receive(reply);
 				result = new String(reply.getData());
-				return result;
 			}
 		} catch (SocketException s) {
 			System.out.println("Socket: " + s.getMessage());
@@ -153,6 +152,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				socket.close();
 			}
 		}
+		return result;
 		
 	}
 	public void run() {
@@ -176,7 +176,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		HashMap<Integer, String> replica_info = new HashMap<Integer, String>();
 		try {
 
-			datagramSocket = new DatagramSocket(9000);
+			datagramSocket = new DatagramSocket(Ports.FEUDPPort);
 			byte[] bufferReceive = new byte[50];
 			byte[] bufferSend = new byte[50];
 			while (true) {
@@ -192,35 +192,33 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						System.out.println("Splitted String is " + splitted[1]);
 
 						System.out.println("Port number at server run , fetched from UDP requuest ");
-						int portfetched = receivedPacket.getPort();
-						System.out.println("Port received" + portfetched);
+						//int portfetched = receivedPacket.getPort();
+						int portFetched = Integer.parseInt(splitted[2]);
+						System.out.println("Port received" + portFetched);
 						
-						String portnum = splitted[1].trim();
+						//String portnum = splitted[1].trim();
 						
-						replica_info.put(3666, splitted[1].trim());
-						replica_info.put(3667, "2");
-						replica_info.put(3668, "3");
+						if (portFetched == Ports.RM1UDPPort)					
+							replica_info.put(Ports.RM1UDPPort, splitted[1].trim());
+						else if (portFetched == Ports.RM2UDPPort)					
+							replica_info.put(Ports.RM2UDPPort, splitted[1].trim());
+						else if (portFetched == Ports.RM3UDPPort)					
+							replica_info.put(Ports.RM3UDPPort, splitted[1].trim());
+			
 						
-						System.out.println(replica_info.get(9000));
-						System.out.println(replica_info.get(9002));
-						System.out.println(replica_info.get(9003));
-
-						// replica_info.put(9004, Integer.valueOf("4"));
-
-						
-						// bufferSend =
-						// Integer.toString(recordcount(receivedPacket.getPort())).getBytes();
+						System.out.println(replica_info.get(Ports.RM1UDPPort));
+						System.out.println(replica_info.get(Ports.RM2UDPPort));
+						System.out.println(replica_info.get(Ports.RM3UDPPort));
 
 						DatagramPacket sendPackets = new DatagramPacket(bufferSend, bufferSend.length,
 								receivedPacket.getAddress(), receivedPacket.getPort());
 						// datagramSocket.send(sendPackets);
 
-
 					}
 					catch(SocketTimeoutException e){
 						System.out.println("Timed out");
 						if (heartBeat == " ") {
-							if (this.UDPPort == 3666) {
+							if (this.leaderPort == Ports.RM1UDPPort) {
 								BullyAlgorithm obj = new BullyAlgorithm();
 								Integer information = Integer.parseInt(obj.Election(replica_info));
 								getKeyFromValue(replica_info, obj.Election(replica_info));
@@ -228,25 +226,17 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 								// Integer.parseInt(replica_info.get(information).trim());
 								int keyValue= getKeyFromValue(replica_info, obj.Election(replica_info));
 								System.out.println("New Leader port is" + replica_info.get(information) + this.UDPPort + information);
-								if(keyValue==3666)
-								this.leaderInfo = "3666";
-								else if(keyValue==3667){
-									this.leaderInfo = "3666";
-								}
-								else{
-									this.leaderInfo="3667";
-								}
+								this.leaderPort = keyValue;								
 							} 
-							
 							else {
-								if (replica_info.get(3667) == null)
-									RM1.start();
+								if (replica_info.get(Ports.RM2UDPPort) == null)
+									RM1.startServers();
 								else if (replica_info.get(3668) == null) {
-									// RM2.start(null);
+									// RM2.startServers(null);
 								}
 
 								// else
-								// Rm3.start(null);
+								// Rm3.startServers(null);
 
 							}
 						}
@@ -294,7 +284,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 			// Create object reference of "MTL Server" and bind it to the
 			// registry(name service)
-			FrontEnd frontEnd = new FrontEnd(Ports.FEUDPPort);
+			FrontEnd frontEnd = new FrontEnd();
 			frontEnd.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);

@@ -2,6 +2,8 @@ package frontEnd;
 
 import java.util.HashMap;
 
+import staticData.Ports;
+
 public class BullyAlgorithm {
 
 
@@ -9,18 +11,18 @@ public class BullyAlgorithm {
 			
 			int leader;
               
-			int replicaid1=Integer.parseInt(replica_id.get(9000));
-			if(replica_id.get(9000)==null){
-				replica_id.put(9000, "1000");
+			int replicaid1=Integer.parseInt(replica_id.get(Ports.RM1UDPPort));
+			if(replica_id.get(Ports.RM1UDPPort)==null){
+				replica_id.put(Ports.RM1UDPPort, "1000");
 			}
 				
-			int replicaid2=Integer.parseInt(replica_id.get(9002));
-			if(replica_id.get(9001)==null){
-				replica_id.put(9000, "1001");
+			int replicaid2=Integer.parseInt(replica_id.get(Ports.RM2UDPPort));
+			if(replica_id.get(Ports.RM2UDPPort)==null){
+				replica_id.put(Ports.RM2UDPPort, "1001");
 			}
-			int replicaid3=Integer.parseInt(replica_id.get(9003));
-			if(replica_id.get(9000)==null){
-				replica_id.put(9000, "1003");
+			int replicaid3=Integer.parseInt(replica_id.get(Ports.RM3UDPPort));
+			if(replica_id.get(Ports.RM3UDPPort)==null){
+				replica_id.put(Ports.RM3UDPPort, "1003");
 			}
 			System.out.println(replicaid1);
 			System.out.println(replicaid2);
