@@ -1,21 +1,8 @@
 package replica1;
 
 
-import FrontEndToReplicaManager.FrontEndToReplicaManager;
-import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
-import classManagement.Record;
-import classManagement.TeacherRecord;
-import replica1.servers.CenterServers;
-import replicaManagement.Request;
-import staticData.Ports;
-
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -23,11 +10,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.omg.CORBA.ORB;
-import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
+
+import FrontEndToReplicaManager.FrontEndToReplicaManager;
+import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
+import replica1.servers.CenterServers;
+import replicaManagement.Request;
+import staticData.Ports;
 
 public class ReplicaManager1 implements Runnable {
 	public static int id= 1;
