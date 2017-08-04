@@ -6,6 +6,6 @@ public abstract class ReplicaManager {
 	public String id;
 	public boolean leaderStatus;
 	
-	public abstract void start(String argp[]);
+	
 	
 }

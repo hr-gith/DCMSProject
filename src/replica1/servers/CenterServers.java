@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.omg.CORBA.ORB;
+import org.omg.CosNaming.NameComponent;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
+import org.omg.PortableServer.POA;
+import org.omg.PortableServer.POAHelper;
 
 import classManagement.Record;
 import classManagement.StudentRecord;
@@ -21,6 +26,8 @@ import classManagement.TeacherRecord;
 import replica1.utilities.EventLogger;
 import replica1.utilities.SequenceIdGenerator;
 import CORBAClassManagement.CORBAClassManagementPOA;
+import FrontEndToReplicaManager.FrontEndToReplicaManager;
+import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerPOA;
 
 public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnable {
@@ -40,7 +47,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 	public void setOrb(ORB orb) {
 		this.orb = orb;
 	}
-		
+
 	public CenterServers(String serverName, int serverPort, int UDPPort) {
 		super();
 		this.serverName = serverName;
@@ -66,8 +73,68 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		logger.setMessage(managerID + " has logged out. ");
 	}
 
-	public boolean createTRecord(String managerID, String recordID,String firstName, String lastName, String address, String phone,
-			String specialization, String location) {
+	public static void main(String[] args) {
+		// Starting all servers---
+		try {
+			
+			// create and initialize the ORB
+			ORB orb = ORB.init(args, null);
+			// get reference to rootpoa & activate the POAManager
+			POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+			rootpoa.the_POAManager().activate();
+
+			// get the root naming context
+			// NameService invokes the name service
+			org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+			// Use NamingContextExt which is part of the Interoperable
+			// Naming Service (INS) specification.
+			NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+
+			// Create object reference of "MTL Server" and bind it to the
+			// registry(name service)
+			CenterServers MTLServer = new CenterServers("MTL", 8890, 9991);
+			MTLServer.setOrb(orb);
+			// get object reference from the servant
+			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(MTLServer);
+			FrontEndToReplicaManager href = FrontEndToReplicaManagerHelper.narrow(ref);
+			// bind the Object Reference in Naming
+			String name = "MTLServer";
+			NameComponent path[] = ncRef.to_name(name);
+			ncRef.rebind(path, href);
+			System.out.println(MTLServer.serverName + " server is started..");
+			(new Thread(MTLServer)).start();
+
+			CenterServers LVLServer = new CenterServers("LVL", 8891, 9992);
+			LVLServer.setOrb(orb);
+
+			ref = rootpoa.servant_to_reference(LVLServer);
+			href = FrontEndToReplicaManagerHelper.narrow(ref);
+
+			name = "LVLServer";
+			path = ncRef.to_name(name);
+			ncRef.rebind(path, href);
+			System.out.println(LVLServer.serverName + " server is started..");
+			(new Thread(LVLServer)).start();
+
+			CenterServers DDOServer = new CenterServers("DDO", 8892, 9993);
+			DDOServer.setOrb(orb);
+			ref = rootpoa.servant_to_reference(DDOServer);
+			href = FrontEndToReplicaManagerHelper.narrow(ref);
+			name = "DDOServer";
+			path = ncRef.to_name(name);
+			ncRef.rebind(path, href);
+			System.out.println(DDOServer.serverName + " server is started..");
+			(new Thread(DDOServer)).start();
+
+			orb.run();
+		} catch (Exception e) {
+			System.err.println("ERROR: " + e);
+			e.printStackTrace(System.out);
+		}
+	}
+
+	public boolean createTRecord(String managerID, String recordID, String firstName, String lastName, String address,
+			String phone, String specialization, String location) {
 		String teacherID = SequenceIdGenerator.getInstance().getID("TR");
 		TeacherRecord teacherRecord = new TeacherRecord(managerID, teacherID, firstName, lastName, address, phone,
 				specialization, location);
@@ -83,8 +150,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		}
 	}
 
-	public boolean createSRecord(String managerID, String recordID,String firstName, String lastName, String courseRegisterd,
-			boolean status, String statusDate) {
+	public boolean createSRecord(String managerID, String recordID, String firstName, String lastName,
+			String courseRegisterd, boolean status, String statusDate) {
 		String studentID = SequenceIdGenerator.getInstance().getID("SR");
 		StudentRecord studentRecord = new StudentRecord(managerID, studentID, firstName, lastName, courseRegisterd,
 				status, statusDate);
@@ -168,13 +235,13 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 				if (this.UDPClient(9992, existingRecord).startsWith("true"))
 					return this.deleteRecord(managerID, recordID);
 				else
-					return false;				
+					return false;
 			}
 			if (remoteCenterServerName.equalsIgnoreCase("DDO")) {
 				if (this.UDPClient(9993, existingRecord).startsWith("true"))
 					return this.deleteRecord(managerID, recordID);
 				else
-					return false;				
+					return false;
 			}
 			return false;
 		}
@@ -190,7 +257,6 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		}
 	}
 
-	
 	public void run() {
 		System.out.println("UDP Connection for : " + this.serverName + " is listening on port: " + this.UDPPort);
 		DatagramSocket socket = null;
@@ -234,7 +300,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 						socket.send(reply);
 
 					}
-					
+
 				}
 
 			}
@@ -329,5 +395,5 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 		return result;
 	}
-	
+
 }
