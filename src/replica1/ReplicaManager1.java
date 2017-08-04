@@ -17,6 +17,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -25,6 +31,7 @@ import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
 public class ReplicaManager1 extends ReplicaManager {
+
 	int UDPPort;
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
@@ -170,7 +177,50 @@ public class ReplicaManager1 extends ReplicaManager {
 
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 		}
 	}
+
+	public void HearBeat() {
+		// UDP to send the hearbeat to the frontEnd
+
+		TimerTask task = new TimerTask() {
+
+			@Override
+			public void run() {
+				System.out.println("I am in timer");
+
+				DatagramSocket datagramSocket;
+				try {
+					datagramSocket = new DatagramSocket();
+					System.out.println("I am in try");
+					ReplicaManager1 dummy = new ReplicaManager1();
+
+					String message = "I Am Alive!" + dummy.id + "!3666";
+					id++;
+
+					InetAddress address = InetAddress.getLocalHost();
+					byte[] bufferSend = message.getBytes();
+					int portnumber = 9000;
+
+					DatagramPacket sendRequestpacket = new DatagramPacket(bufferSend, bufferSend.length, address,
+							portnumber);
+					datagramSocket.send(sendRequestpacket);
+					System.out.println("sent packet");
+
+					if (datagramSocket != null)
+						datagramSocket.close();
+
+				} catch (Exception e) {
+					System.err.println("ERROR: " + e);
+					e.printStackTrace(System.out);
+				}
+
+			}
+
+		};
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(task, 30000, 10000);
+
+	}
+
 }
