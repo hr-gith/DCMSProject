@@ -385,15 +385,5 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	}
 
-	public String printAllRecords() {
-		String result = "";
-		for (ArrayList<Record> listOfRecord : record.getRecord().values()) {
-			for (Record rec : listOfRecord) {
-				result += rec.toString();
-			}
-		}
-
-		return result;
-	}
-
+	
 }
