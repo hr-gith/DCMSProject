@@ -162,7 +162,13 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		System.out.println("I am in run of Frontend!!!!");
 		// To start the RM1
 		//ReplicaManager1 RM1 = new ReplicaManager1();
-		// RM1.start(null);
+		new Thread(new Runnable(){
+
+			public void run() {
+				ReplicaManager1.main(null);
+			}
+			
+		}).start();
 		//RM1.HearBeat();
 
 		// To start the RM2
@@ -182,7 +188,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			while (true) {
 				System.out.println("I am in run of Frontend");
 				DatagramPacket receivedPacket = new DatagramPacket(bufferReceive, bufferReceive.length);
-				datagramSocket.setSoTimeout(1000);
+				datagramSocket.setSoTimeout(40000);
 				while(true){
 					try{
 						datagramSocket.receive(receivedPacket);		

@@ -44,6 +44,7 @@ public class ReplicaManager1 implements Runnable {
 	public static void main(String arg[]) {
 		ReplicaManager1 rm1 = new ReplicaManager1();
 		CenterServers.main(null);
+		rm1.HearBeat();
 		(new Thread(rm1)).start();
 		System.out.println("RM 1 is started..");
 	}
@@ -180,46 +181,53 @@ public class ReplicaManager1 implements Runnable {
 		} catch (Exception e) {
 		}
 	}
-
+//new Thread(new Runnable(){}).start();
 	public void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
+		new Thread(new Runnable(){
 
-		/*TimerTask task = new TimerTask() {
-
-			@Override
 			public void run() {
-				System.out.println("I am in timer");
+				// TODO Auto-generated method stub
+				TimerTask task = new TimerTask() {
 
-				DatagramSocket datagramSocket;
-				try {
-					datagramSocket = new DatagramSocket();
-					System.out.println("I am in try");
-					//ReplicaManager1 dummy = new ReplicaManager1();
+					@Override
+					public void run() {
+						System.out.println("I am in timer");
 
-					//String message = "I Am Alive!" + dummy.id + "!3666";
-					//id++;
-					String message = "I Am Alive!"+ id + "!" + Ports.RM1UDPPort;
+						DatagramSocket datagramSocket;
+						try {
+							datagramSocket = new DatagramSocket();
+							System.out.println("I am in try");
+							//ReplicaManager1 dummy = new ReplicaManager1();
 
-					InetAddress address = InetAddress.getLocalHost();
-					byte[] bufferSend = message.getBytes();
+							//String message = "I Am Alive!" + dummy.id + "!3666";
+							//id++;
+							String message = "I Am Alive!"+ id + "!" + Ports.RM1UDPPort;
 
-					DatagramPacket sendRequestpacket = new DatagramPacket(bufferSend, bufferSend.length, address,
-							Ports.FEUDPPort);
-					datagramSocket.send(sendRequestpacket);
-					System.out.println("sent packet");
+							InetAddress address = InetAddress.getLocalHost();
+							byte[] bufferSend = message.getBytes();
 
-					if (datagramSocket != null)
-						datagramSocket.close();
+							DatagramPacket sendRequestpacket = new DatagramPacket(bufferSend, bufferSend.length, address,
+									Ports.FEUDPPort);
+							datagramSocket.send(sendRequestpacket);
+							System.out.println("sent packet");
 
-				} catch (Exception e) {
-					System.err.println("ERROR: " + e);
-					e.printStackTrace(System.out);
-				}
+							if (datagramSocket != null)
+								datagramSocket.close();
+
+						} catch (Exception e) {
+							System.err.println("ERROR: " + e);
+							e.printStackTrace(System.out);
+						}
+					}
+				};
+				Timer timer = new Timer();
+				timer.scheduleAtFixedRate(task, 30000, 10000);
 			}
-		};
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 30000, 10000);
-*/
+			
+		}).start();
+		
+
 	}
 
 }
