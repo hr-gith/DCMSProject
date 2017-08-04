@@ -1,8 +1,12 @@
 package frontEnd;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -25,7 +29,7 @@ import CORBAClassManagement.*;
 public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 	public int UDPPort;
-	public static int leaderInfo;
+	public static int leaderPort = 0;
 
 	private ORB orb;
 
@@ -52,13 +56,17 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.phone = phone;
 		req.specialization = specialization;
 		req.location = location;
-		return FIFOQueue.getInstance().push(req);
+		String result = UDPClient(req);
+		if (result.startsWith("true"))
+			return true;
+		else
+			return false;
 	}
 
 	public String getRecordCounts() {
 		Request req = new Request();
 		req.typeOfRequest = Request.GET_COUNT_REQUEST;
-		FIFOQueue.getInstance().push(req);
+		String result = UDPClient(req);
 
 		return null;
 	}
@@ -70,8 +78,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.recordID = recordID;
 		req.fieldName = fieldName;
 		req.newValue = newValue;
-		return FIFOQueue.getInstance().push(req);
-	}
+		String result = UDPClient(req);
+		if (result.startsWith("true"))
+			return true;
+		else
+			return false;
+		}
 
 	public boolean createSRecord(String managerID, String firstName, String lastName, String coursesRegistered,
 			boolean status, String statusDate) {
@@ -82,8 +94,11 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.lastName = lastName;
 		req.courseRegistered = coursesRegistered;
 		req.status = status;
-		return FIFOQueue.getInstance().push(req);		 
-	}
+		String result = UDPClient(req);
+		if (result.startsWith("true"))
+			return true;
+		else
+			return false;	}
 
 	public boolean transferRecord(String managerID, String recordID, String remoteCenterServerName) {
 		Request req = new Request();
@@ -91,9 +106,55 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.managerID = managerID;
 		req.recordID = recordID;
 		req.remoteCenterServerName = remoteCenterServerName;
-		return FIFOQueue.getInstance().push(req);
-	}
+		String result = UDPClient(req);
+		if (result.startsWith("true"))
+			return true;
+		else
+			return false;	}
 
+	
+	public String UDPClient(Request req){
+		String result = "";
+		DatagramSocket socket = null;
+
+		try {
+			synchronized (req) {
+				while (leaderPort == 0){
+					
+				};
+
+				// serialize the message object
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				ObjectOutput oo = new ObjectOutputStream(bos);
+				oo.writeObject(req);
+				oo.close();
+				socket = new DatagramSocket();
+				InetAddress host = InetAddress.getByName("localhost");
+				byte[] serializedMsg = bos.toByteArray();
+				DatagramPacket request = new DatagramPacket(serializedMsg,
+						serializedMsg.length, host,
+						FrontEnd.leaderPort);
+				socket.send(request);
+
+				// send reply back to client
+				byte[] buffer = new byte[1000];
+				DatagramPacket reply = new DatagramPacket(buffer,
+						buffer.length);
+				socket.receive(reply);
+				result = new String(reply.getData());
+				return result;
+			}
+		} catch (SocketException s) {
+			System.out.println("Socket: " + s.getMessage());
+		} catch (Exception e) {
+			System.out.println("IO: " + e.getMessage());
+		} finally {
+			if (socket != null) {
+				socket.close();
+			}
+		}
+		
+	}
 	public void run() {
 		boolean RM = false;
 		boolean RM2 = false;

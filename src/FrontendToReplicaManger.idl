@@ -1,8 +1,6 @@
 module FrontEndToReplicaManager
 {
 interface FrontEndToReplicaManager{
-	 boolean login (in string managerID) ;
-	 void logout () ;
 	 boolean createTRecord(in string managerID,in string recordID, in string firstName, in string lastName, in string address, in string phone, in string specialization, in string location);
 	 string getRecordCounts() ;
 	 boolean editRecord(in string managerID, in string recordID, in string fieldName, in string newValue);
