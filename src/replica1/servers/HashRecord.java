@@ -10,15 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;
-	
+
 	private HashMap<String, ArrayList<Record>> customerInfoTable = new HashMap<String, ArrayList<Record>>();
 	private String DBFileName;
 
@@ -29,8 +27,8 @@ public class HashRecord {
 
 	public synchronized void saveToFile() {
 		try {
-			//File fileDB = new File(DBFileName);
-			FileOutputStream fos = new FileOutputStream("DBFileName");
+			// File fileDB = new File(DBFileName);
+			FileOutputStream fos = new FileOutputStream(DBFileName);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(customerInfoTable);
@@ -40,7 +38,7 @@ public class HashRecord {
 		} catch (Exception e) {
 			System.out.println("File not found: " + e.getStackTrace());
 		}
-		
+
 	}
 
 	public void readFromFile() {
@@ -143,7 +141,8 @@ public class HashRecord {
 					} else if (recordID.startsWith("SR")) {
 						// Student record
 						if (fieldName.equals("courseregistered")) {
-							((StudentRecord) recFound).setCourseRegistered(newValue);
+							((StudentRecord) recFound)
+									.setCourseRegistered(newValue);
 						} else if (fieldName.equals("status")) {
 							boolean status = false;
 							if (newValue.toLowerCase().equals("active"))

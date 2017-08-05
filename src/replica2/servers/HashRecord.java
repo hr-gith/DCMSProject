@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
 
 import classManagement.Record;
 import classManagement.StudentRecord;
@@ -30,7 +29,7 @@ public class HashRecord {
 	public synchronized void saveToFile() {
 		try {
 			//File fileDB = new File(DBFileName);
-			FileOutputStream fos = new FileOutputStream("DBFileName");
+			FileOutputStream fos = new FileOutputStream(DBFileName);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(customerInfoTable);

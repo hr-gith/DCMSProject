@@ -1,7 +1,10 @@
 package replica1;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -12,6 +15,8 @@ import java.util.TimerTask;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
+
+import com.sun.xml.internal.ws.wsdl.writer.document.Port;
 
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
@@ -58,9 +63,13 @@ public class ReplicaManager1 implements Runnable {
 
 	public void run() {// for receiving requests
 		DatagramSocket socket = null;
+		DatagramSocket socket2 = null;
+		DatagramSocket socket3 = null;
+
 		try {
 
 			socket = new DatagramSocket(this.UDPPort);
+			
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
 			byte[] buffer2 = new byte[65536];
@@ -69,7 +78,7 @@ public class ReplicaManager1 implements Runnable {
 				String result = "", result2 = "", result3 = "";
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
-				logger.setMessage("Request received at RM1");
+				logger.setMessage("Request received at RM1 from port: "+request.getPort());
 				byte[] requestByteArray = request.getData();
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(requestByteArray);
 				ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
@@ -149,6 +158,8 @@ public class ReplicaManager1 implements Runnable {
 					System.out.println("RM:Records are: " + recordInfo);
 					result = "true" + recordInfo;
 				}
+				//after executing in its own server 
+				//broadcasting to other RMs
 				logger.setMessage("Result after executing on center servers is "+result);
 				if (result.startsWith("true")) {
 					logger.setMessage("Request has sucessfully executed on RM1 : "+serverName);
@@ -156,29 +167,36 @@ public class ReplicaManager1 implements Runnable {
 						// TODO: multicast to all servers
 						logger.setMessage("Request executed sucessfully so braodcasting to other RMs");
 
+												
+						ByteArrayOutputStream bos = new ByteArrayOutputStream();
+						ObjectOutput oo = new ObjectOutputStream(bos);
+						oo.writeObject(reqReceived);
+						oo.close();
+						socket2 = new DatagramSocket(Ports.RM1UDPPort2);						
+						byte[] serializedMsg = bos.toByteArray();
 						InetAddress ahost = InetAddress.getLocalHost();
-						DatagramPacket request2 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
+						DatagramPacket request2 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
 								Ports.RM2UDPPort);
 						//TODO: create a new socket
-						socket.setSoTimeout(40000);
+						socket2.setSoTimeout(40000);
 						try {
-							socket.send(request2);
+							socket2.send(request2);
 							DatagramPacket reply2 = new DatagramPacket(buffer2, buffer2.length);
-							socket.receive(reply2);
+							socket2.receive(reply2);
 							byte[] resultRecieved2 = reply2.getData();
 							result2 = new String(resultRecieved2);
 							logger.setMessage("Result received from RM2 after Broadcast"+result2);
 						} catch (SocketTimeoutException e) {
 							System.out.println("socket has timed out to send to replica 2");
 						}
-
-						DatagramPacket request3 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
+						socket3=new DatagramSocket(Ports.RM1UDPPort3);
+						DatagramPacket request3 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
 								Ports.RM3UDPPort);
-						socket.setSoTimeout(40000);
+						socket3.setSoTimeout(40000);
 						try {
-							socket.send(request3);
+							socket3.send(request3);
 							DatagramPacket reply3 = new DatagramPacket(buffer3, buffer3.length);
-							socket.receive(reply3);
+							socket3.receive(reply3);
 							byte[] resultRecieved3 = reply3.getData();
 							result3 = new String(resultRecieved3);
 							logger.setMessage("Result received from RM3 after Broadcast"+result3);

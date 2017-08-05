@@ -49,7 +49,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		this.serverName = serverName;
 		this.serverPort = serverPort;
 		this.UDPPort = UDPPort;
-		String DBFileName = "DB_" + serverName + serverPort;
+		String DBFileName = "DB_RM1" + serverName ;
 		record = new HashRecord(DBFileName);
 		this.logger = new EventLogger(this.serverName);
 	}
