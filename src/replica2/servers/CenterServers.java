@@ -25,6 +25,7 @@ import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
 import frontEnd.SequenceIdGenerator;
 import replica1.utilities.EventLogger;
+import staticData.Ports;
 import CORBAClassManagement.CORBAClassManagementPOA;
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
@@ -78,7 +79,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 			// Create object reference of "MTL Server" and bind it to the
 			// registry(name service)
-			CenterServers MTLServer = new CenterServers("MTL", 8890, 9991);
+			CenterServers MTLServer = new CenterServers("MTL", 8890, Ports.RM2MTL);
 			MTLServer.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(MTLServer);
@@ -87,10 +88,10 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			String name = "MTLServer";
 			NameComponent path[] = ncRef.to_name(name);
 			ncRef.rebind(path, href);
-			System.out.println(MTLServer.serverName + " server is started..");
+			System.out.println(MTLServer.serverName + " server2 is started..");
 			(new Thread(MTLServer)).start();
 
-			CenterServers LVLServer = new CenterServers("LVL", 8891, 9992);
+			CenterServers LVLServer = new CenterServers("LVL", 8891, Ports.RM2LVL);
 			LVLServer.setOrb(orb);
 
 			ref = rootpoa.servant_to_reference(LVLServer);
@@ -99,17 +100,17 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			name = "LVLServer";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
-			System.out.println(LVLServer.serverName + " server is started..");
+			System.out.println(LVLServer.serverName + " server2 is started..");
 			(new Thread(LVLServer)).start();
 
-			CenterServers DDOServer = new CenterServers("DDO", 8892, 9993);
+			CenterServers DDOServer = new CenterServers("DDO", 8892, Ports.RM2DDO);
 			DDOServer.setOrb(orb);
 			ref = rootpoa.servant_to_reference(DDOServer);
 			href = FrontEndToReplicaManagerHelper.narrow(ref);
 			name = "DDOServer";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
-			System.out.println(DDOServer.serverName + " server is started..");
+			System.out.println(DDOServer.serverName + " server2 is started..");
 			(new Thread(DDOServer)).start();
 
 			orb.run();
@@ -160,11 +161,11 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 		String result = this.serverName + " : " + record.getRecordCount();
 		if (this.serverName.equals("MTL")) {
-			result += " LVL : " + UDPClient(9992, null) + " DDO : " + UDPClient(9993, null);
+			result += " LVL : " + UDPClient(Ports.RM2LVL, null) + " DDO : " + UDPClient(Ports.RM2DDO, null);
 		} else if (this.serverName.equals("LVL")) {
-			result += " MTL : " + UDPClient(9991, null) + " DDO : " + UDPClient(9993, null);
+			result += " MTL : " + UDPClient(Ports.RM2MTL, null) + " DDO : " + UDPClient(Ports.RM2DDO, null);
 		} else if (this.serverName.equals("DDO")) {
-			result += " LVL : " + UDPClient(9992, null) + " MTL : " + UDPClient(9991, null);
+			result += " LVL : " + UDPClient(Ports.RM2LVL, null) + " MTL : " + UDPClient(Ports.RM2MTL, null);
 		}
 
 		return result;

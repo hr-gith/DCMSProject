@@ -57,7 +57,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		Request req = new Request();
 		req.typeOfRequest = Request.CREATE_TEACHER_REQUEST;
 		req.managerID = managerID;
-		req.recordID=SequenceIdGenerator.getID("TR");
+		req.recordID = SequenceIdGenerator.getID("TR");
 		req.firstName = firstName;
 		req.lastName = lastName;
 		req.address = address;
@@ -98,7 +98,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		Request req = new Request();
 		req.typeOfRequest = Request.CREATE_STUDENT_REQUEST;
 		req.managerID = managerID;
-		req.recordID=SequenceIdGenerator.getID("SR");
+		req.recordID = SequenceIdGenerator.getID("SR");
 		req.firstName = firstName;
 		req.lastName = lastName;
 		req.courseRegistered = coursesRegistered;
@@ -252,13 +252,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
 
-		checkIfAlive();
-
 		// To start the RM1
 		new Thread(new Runnable() {
 			public void run() {
 
-				// ReplicaManager1.main(null);
+				ReplicaManager1.main(null);
+				alive1=true;
 			}
 
 		}).start();
@@ -266,7 +265,8 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		// To start the RM2
 		new Thread(new Runnable() {
 			public void run() {
-				// ReplicaManager2.main(null);
+				ReplicaManager2.main(null);
+				alive2=true;
 			}
 
 		}).start();
@@ -275,10 +275,11 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		new Thread(new Runnable() {
 			public void run() {
 				ReplicaManager3.main(null);
+				alive3=true;
 			}
 
 		}).start();
-
+		checkIfAlive();
 		// UDP to listen to RM's Heartbeat
 
 		DatagramSocket datagramSocket = null;
