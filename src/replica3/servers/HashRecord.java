@@ -43,8 +43,7 @@ public class HashRecord {
 			fos.close();
 		} catch (Exception e) {
 			System.out.println("File not found: " + e.getStackTrace());
-		}
-		
+		}		
 	}
 
 	public void readFromFile() {
