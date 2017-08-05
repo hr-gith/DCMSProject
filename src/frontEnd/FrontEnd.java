@@ -57,6 +57,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		Request req = new Request();
 		req.typeOfRequest = Request.CREATE_TEACHER_REQUEST;
 		req.managerID = managerID;
+		req.recordID=SequenceIdGenerator.getID("TR");
 		req.firstName = firstName;
 		req.lastName = lastName;
 		req.address = address;
@@ -97,6 +98,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		Request req = new Request();
 		req.typeOfRequest = Request.CREATE_STUDENT_REQUEST;
 		req.managerID = managerID;
+		req.recordID=SequenceIdGenerator.getID("SR");
 		req.firstName = firstName;
 		req.lastName = lastName;
 		req.courseRegistered = coursesRegistered;

@@ -36,10 +36,10 @@ public class BullyAlgorithm {
 		
 			
 		//Leader	
-			if(Integer.compare(replicaid1, replicaid2) >0 && Integer.compare(replicaid1, replicaid3)>0){
+			if(Integer.compare(replicaid1, replicaid2) <0 && Integer.compare(replicaid1, replicaid3)<0){
 				leader=replicaid1;
 			}
-			else if(Integer.compare(replicaid2, replicaid3)>0 && Integer.compare(replicaid2, replicaid1)>0){
+			else if(Integer.compare(replicaid2, replicaid3)<0 && Integer.compare(replicaid2, replicaid1)<0){
 				leader=replicaid2;
 			
 			}
