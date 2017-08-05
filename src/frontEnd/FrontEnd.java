@@ -20,7 +20,6 @@ import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
-
 import classManagement.Record;
 import classManagement.TeacherRecord;
 import replica1.ReplicaManager1;
@@ -34,9 +33,9 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 	public int UDPPort;
 	public static int leaderPort = Ports.RM1UDPPort;
-	boolean  alive1  = false;
-	boolean  alive2 = false;
-	boolean  alive3 = false;
+	boolean alive1 = false;
+	boolean alive2 = false;
+	boolean alive3 = false;
 	HashMap<Integer, String> replica_info = new HashMap<Integer, String>();
 
 	private ORB orb;
@@ -91,7 +90,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			return true;
 		else
 			return false;
-		}
+	}
 
 	public boolean createSRecord(String managerID, String firstName, String lastName, String coursesRegistered,
 			boolean status, String statusDate) {
@@ -106,7 +105,8 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		if (result.startsWith("true"))
 			return true;
 		else
-			return false;	}
+			return false;
+	}
 
 	public boolean transferRecord(String managerID, String recordID, String remoteCenterServerName) {
 		Request req = new Request();
@@ -118,18 +118,19 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		if (result.startsWith("true"))
 			return true;
 		else
-			return false;	}
+			return false;
+	}
 
-	
-	public String UDPClient(Request req){
+	public String UDPClient(Request req) {
 		String result = "";
 		DatagramSocket socket = null;
 
 		try {
 			synchronized (req) {
-				while (leaderPort == 0){
-					
-				};
+				while (leaderPort == 0) {
+
+				}
+				;
 
 				// serialize the message object
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -139,15 +140,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				socket = new DatagramSocket(this.UDPPort);
 				InetAddress host = InetAddress.getByName("localhost");
 				byte[] serializedMsg = bos.toByteArray();
-				DatagramPacket request = new DatagramPacket(serializedMsg,
-						serializedMsg.length, host,
-						this.leaderPort);
+				DatagramPacket request = new DatagramPacket(serializedMsg, serializedMsg.length, host, this.leaderPort);
 				socket.send(request);
 
 				// send reply back to client
 				byte[] buffer = new byte[1000];
-				DatagramPacket reply = new DatagramPacket(buffer,
-						buffer.length);
+				DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
 				socket.receive(reply);
 				result = new String(reply.getData());
 			}
@@ -161,113 +159,146 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			}
 		}
 		return result;
-		
+
 	}
 
-	
-	public void checkIfAlive(){
-		
-		System.out.println("I am in checck if alive");
+	public void checkIfAlive() {
+
+		System.out.println("I am in check if alive");
 		TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
-				System.out.println("I am run in checck if alive");
-				if (alive1 = false && leaderPort == Ports.RM1UDPPort) {
+				System.out.println("I am run of alive");
+				if (alive1 == false && leaderPort == Ports.RM1UDPPort) {
+					System.out.println("RM1 1 has failed, calling elction algorithm");
 					BullyAlgorithm obj = new BullyAlgorithm();
 					Integer information = Integer.parseInt(obj.Election(replica_info));
 					getKeyFromValue(replica_info, obj.Election(replica_info));
-					int keyValue= getKeyFromValue(replica_info, obj.Election(replica_info));
+					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
 					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;								
-				} 
-				else
-				{
-					if(alive1= false)
-					ReplicaManager1.main(null);
+					leaderPort = keyValue;
+
+				} else {
+					System.out.println("RM1 has failed and starting it now");
+					if (alive1 == false)
+						new Thread(new Runnable() {
+
+							public void run() {
+
+								ReplicaManager1.main(null);
+							}
+
+						}).start();
+
 				}
-				if (alive2 = false && leaderPort == Ports.RM2UDPPort){
+				if (alive2 == false && leaderPort == Ports.RM2UDPPort) {
 					BullyAlgorithm obj = new BullyAlgorithm();
 					Integer information = Integer.parseInt(obj.Election(replica_info));
 					getKeyFromValue(replica_info, obj.Election(replica_info));
-					int keyValue= getKeyFromValue(replica_info, obj.Election(replica_info));
+					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
 					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;								
-					}
+					leaderPort = keyValue;
+				}
 
-				 else
-				 {
-					 if(alive2= false)
-					 ReplicaManager2.main(null);
-				 }
-				 if (alive3 = false && leaderPort == Ports.RM3UDPPort) {
-					 BullyAlgorithm obj = new BullyAlgorithm();
-						Integer information = Integer.parseInt(obj.Election(replica_info));
-						getKeyFromValue(replica_info, obj.Election(replica_info));
-						// this.UDPPort =
-						// Integer.parseInt(replica_info.get(information).trim());
-						int keyValue= getKeyFromValue(replica_info, obj.Election(replica_info));
-						System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-						leaderPort = keyValue;	
-					}
+				else {
+					if (alive2 == false)
 
-					 else{
-						 if(alive3= false)
-						 ReplicaManager3.main(null);
-					 }
-					
-				
-				
+						new Thread(new Runnable() {
+
+							public void run() {
+								ReplicaManager2.main(null);
+							}
+
+						}).start();
+
+				}
+				if (alive3 == false && leaderPort == Ports.RM3UDPPort) {
+					BullyAlgorithm obj = new BullyAlgorithm();
+					Integer information = Integer.parseInt(obj.Election(replica_info));
+					getKeyFromValue(replica_info, obj.Election(replica_info));
+					// this.UDPPort =
+					// Integer.parseInt(replica_info.get(information).trim());
+					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
+					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
+					leaderPort = keyValue;
+				}
+
+				else {
+					if (alive3 == false)
+
+						new Thread(new Runnable() {
+
+							public void run() {
+								ReplicaManager3.main(null);
+							}
+
+						}).start();
+
+				}
+
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task,5000,100);
-				
-}
+		timer.scheduleAtFixedRate(task, 5000, 40000);
 
-	
+	}
+
 	public void run() {
 		boolean RM = false;
 		boolean RM2 = false;
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
-		
-		// To start the RM1
-		//ReplicaManager1.main(null);
 
 		checkIfAlive();
+
+		// To start the RM1
+		new Thread(new Runnable() {
+			public void run() {
+
+				// ReplicaManager1.main(null);
+			}
+
+		}).start();
+
 		// To start the RM2
-		//ReplicaManager2.main(null);
+		new Thread(new Runnable() {
+			public void run() {
+				// ReplicaManager2.main(null);
+			}
+
+		}).start();
 
 		// To start the RM3
-		//ReplicaManager3.main(null);
-		
-	
+		new Thread(new Runnable() {
+			public void run() {
+				ReplicaManager3.main(null);
+			}
 
-		
-		
+		}).start();
+
 		// UDP to listen to RM's Heartbeat
 
 		DatagramSocket datagramSocket = null;
-		
-		String heartBeat ="  ";
-		
+
+		String heartBeat = "  ";
+
 		try {
-			 
+
 			datagramSocket = new DatagramSocket(Ports.FEUDPPort);
 			byte[] bufferReceive = new byte[50];
 			byte[] bufferSend = new byte[50];
 			while (true) {
 				System.out.println("I am in run of Frontend");
 				DatagramPacket receivedPacket = new DatagramPacket(bufferReceive, bufferReceive.length);
-				//datagramSocket.setSoTimeout(1000);
-				while(true){
-					try{
-						 /*RM = false;
-						 RM2 = false;
-						 Rm3 = false;*/
-						datagramSocket.receive(receivedPacket);		
-					    heartBeat = new String(receivedPacket.getData());
+				// datagramSocket.setSoTimeout(1000);
+				while (true) {
+					try {
+						/*
+						 * RM = false; RM2 = false; Rm3 = false;
+						 */
+						datagramSocket.receive(receivedPacket);
+						heartBeat = new String(receivedPacket.getData());
 						System.out.println("Received the heartbeat" + heartBeat);
 						String[] splitted = heartBeat.split("!");
 						System.out.println("Splitted String is " + splitted[1]);
@@ -275,57 +306,55 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						System.out.println("Port number at server run , fetched from UDP requuest ");
 						int portFetched = Integer.parseInt(splitted[2].trim());
 						System.out.println("Port received" + portFetched);
-						
-						
-						if (portFetched == Ports.RM1UDPPort ){
+
+						if (portFetched == Ports.RM1UDPPort) {
 							replica_info.put(Ports.RM1UDPPort, splitted[1].trim());
-							if(splitted[1].trim()!=null){
-								alive1= true;
-							   }
+							if (splitted[1].trim() != null) {
+								alive1 = true;
 							}
-							
-						else if (portFetched == Ports.RM2UDPPort){					
+						}
+
+						else if (portFetched == Ports.RM2UDPPort) {
 							replica_info.put(Ports.RM2UDPPort, splitted[1].trim());
-							if(splitted[1].trim()!=null){
-								alive2= true;
-							   }
+							if (splitted[1].trim() != null) {
+								alive2 = true;
 							}
-						else if (portFetched == Ports.RM3UDPPort){					
+						} else if (portFetched == Ports.RM3UDPPort) {
 							replica_info.put(Ports.RM3UDPPort, splitted[1].trim());
-							if(splitted[1].trim()!=null){
-								alive3= true;
-							   }
+							if (splitted[1].trim() != null) {
+								alive3 = true;
 							}
-			
-						
+						}
+
 						System.out.println(replica_info.get(Ports.RM1UDPPort));
 						System.out.println(replica_info.get(Ports.RM2UDPPort));
 						System.out.println(replica_info.get(Ports.RM3UDPPort));
 
-						/*DatagramPacket sendPackets = new DatagramPacket(bufferSend, bufferSend.length,
-								receivedPacket.getAddress(), receivedPacket.getPort());*/
-						
+						/*
+						 * DatagramPacket sendPackets = new
+						 * DatagramPacket(bufferSend, bufferSend.length,
+						 * receivedPacket.getAddress(),
+						 * receivedPacket.getPort());
+						 */
 
 					}
-				
-					catch(SocketTimeoutException e){
-						
-						
-						}
+
+					catch (SocketTimeoutException e) {
+
 					}
-				}	
+				}
+			}
 		}
-	
-		 catch (SocketException ex) {
+
+		catch (SocketException ex) {
 			System.out.println("Socket " + ex.getMessage());
 		} catch (IOException e) {
 
 			System.out.println("IO :" + e.getMessage());
 
 		}
-			
+
 	}
-			
 
 	public Integer getKeyFromValue(HashMap<Integer, String> hashmap, String id) {
 

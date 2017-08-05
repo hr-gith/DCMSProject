@@ -42,10 +42,26 @@ public class ReplicaManager2 implements Runnable {
 	}
 
 	public static void main(String arg[]) {
-		ReplicaManager2 rm1 = new ReplicaManager2();
-		CenterServers.main(null);
-		(new Thread(rm1)).start();
+		ReplicaManager2 rm2 = new ReplicaManager2();
+		new Thread(new Runnable() {
+			
+			public void run() {
+				// TODO Auto-generated method stub
+				replica2.servers.CenterServers.main(null);		
+			}
+		}).start();
+		
+		new Thread(new Runnable(){
+
+			public void run() {
+				System.out.println("I am in thread of HB2");
+				HearBeat();
+			}
+			
+		}).start();
 		System.out.println("RM 2 is started..");
+		(new Thread(rm2)).start();
+		
 	}
 	
 	public void run() {// for receiving requests
@@ -181,10 +197,10 @@ public class ReplicaManager2 implements Runnable {
 		}
 	}
 
-	public void HearBeat() {
+	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		/*TimerTask task = new TimerTask() {
+		TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -194,11 +210,8 @@ public class ReplicaManager2 implements Runnable {
 				try {
 					datagramSocket = new DatagramSocket();
 					System.out.println("I am in try");
-					//ReplicaManager1 dummy = new ReplicaManager1();
 
-					//String message = "I Am Alive!" + dummy.id + "!3666";
-					//id++;
-					String message = "I Am Alive!"+ id + "!" + Ports.RM2UDPPort;
+					String message = "I Am Alive!" + id + "!" + Ports.RM2UDPPort;
 
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
@@ -218,8 +231,9 @@ public class ReplicaManager2 implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 30000, 10000);
-*/
+		timer.scheduleAtFixedRate(task,  1,30000);
+
 	}
+
 
 }

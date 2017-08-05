@@ -1,6 +1,5 @@
 package replica3;
 
-
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import classManagement.Record;
@@ -42,10 +41,25 @@ public class ReplicaManager3 implements Runnable {
 	}
 
 	public static void main(String arg[]) {
-		ReplicaManager3 rm1 = new ReplicaManager3();
-		CenterServers.main(null);
-		(new Thread(rm1)).start();
+		ReplicaManager3 rm3 = new ReplicaManager3();
+		new Thread(new Runnable() {
+			
+			public void run() {
+				// TODO Auto-generated method stub
+				replica3.servers.CenterServers.main(null);		
+			}
+		}).start();
+		
+		new Thread(new Runnable(){
+
+			public void run() {
+				System.out.println("I am in thread of HB od 3 rd manager");
+				HearBeat();
+			}
+			
+		}).start();
 		System.out.println("RM 3 is started..");
+		(new Thread(rm3)).start();
 	}
 	
 	public void run() {// for receiving requests
@@ -181,10 +195,10 @@ public class ReplicaManager3 implements Runnable {
 		}
 	}
 
-	public void HearBeat() {
+	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		/*TimerTask task = new TimerTask() {
+		TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -194,11 +208,8 @@ public class ReplicaManager3 implements Runnable {
 				try {
 					datagramSocket = new DatagramSocket();
 					System.out.println("I am in try");
-					//ReplicaManager1 dummy = new ReplicaManager1();
 
-					//String message = "I Am Alive!" + dummy.id + "!3666";
-					//id++;
-					String message = "I Am Alive!"+ id + "!" + Ports.RM3UDPPort;
+					String message = "I Am Alive!" + id + "!" + Ports.RM3UDPPort;
 
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
@@ -218,8 +229,10 @@ public class ReplicaManager3 implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 30000, 10000);
-*/
+		
+		timer.scheduleAtFixedRate(task, 1,30000);
+
 	}
+
 
 }

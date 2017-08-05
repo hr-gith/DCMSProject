@@ -40,10 +40,24 @@ public class ReplicaManager1 implements Runnable {
 
 	public static void main(String arg[]) {
 		ReplicaManager1 rm1 = new ReplicaManager1();
-		CenterServers.main(null);
-		rm1.HearBeat();
-		(new Thread(rm1)).start();
+		new Thread(new Runnable() {
+			
+			public void run() {
+				// TODO Auto-generated method stub
+				CenterServers.main(null);		
+			}
+		}).start();
+		
+		new Thread(new Runnable(){
+
+			public void run() {
+				System.out.println("I am in thread of HB1");
+				HearBeat();
+			}
+			
+		}).start();
 		System.out.println("RM 1 is started..");
+		(new Thread(rm1)).start();
 	}
 
 	public void run() {// for receiving requests
@@ -217,8 +231,7 @@ public class ReplicaManager1 implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 3000, 10);
+		timer.scheduleAtFixedRate(task,  1,30000);
 
 	}
-
 }
