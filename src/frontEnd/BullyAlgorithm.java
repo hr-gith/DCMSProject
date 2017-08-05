@@ -33,9 +33,9 @@ public class BullyAlgorithm {
 		System.out.println(replicaid1);
 		System.out.println(replicaid2);
 		System.out.println(replicaid3);
-		//Leader
+		
 			
-			
+		//Leader	
 			if(Integer.compare(replicaid1, replicaid2) >0 && Integer.compare(replicaid1, replicaid3)>0){
 				leader=replicaid1;
 			}

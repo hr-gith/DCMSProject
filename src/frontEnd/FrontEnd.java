@@ -240,7 +240,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 5000, 40000);
+		timer.scheduleAtFixedRate(task, 30000, 40000);
 
 	}
 
