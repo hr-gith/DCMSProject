@@ -5,13 +5,6 @@ import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,6 +15,7 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import replica1.servers.CenterServers;
+import replica1.utilities.EventLogger;
 import replicaManagement.Request;
 import staticData.Ports;
 
@@ -31,30 +25,31 @@ public class ReplicaManager1 implements Runnable {
 	public int UDPPort;
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
+	private EventLogger logger = null;
 
 	public ReplicaManager1() {
 		this.UDPPort = Ports.RM1UDPPort;
-
+		this.logger = new EventLogger("RM1Log");
 		this.leaderStatus = false;
 	}
 
 	public static void main(String arg[]) {
 		ReplicaManager1 rm1 = new ReplicaManager1();
 		new Thread(new Runnable() {
-			
+
 			public void run() {
 				// TODO Auto-generated method stub
-				CenterServers.main(null);		
+				CenterServers.main(null);
 			}
 		}).start();
-		
-		new Thread(new Runnable(){
+
+		new Thread(new Runnable() {
 
 			public void run() {
 				System.out.println("I am in thread of HB1");
 				HearBeat();
 			}
-			
+
 		}).start();
 		System.out.println("RM 1 is started..");
 		(new Thread(rm1)).start();
@@ -63,20 +58,24 @@ public class ReplicaManager1 implements Runnable {
 	public void run() {// for receiving requests
 		DatagramSocket socket = null;
 		try {
-			String result = "", result2 = "", result3 = "";
+			
 			socket = new DatagramSocket(this.UDPPort);
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
 			while (true) {
+				String result = "", result2 = "", result3 = "";
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
+				logger.setMessage("Request received at RM1");
 				byte[] requestByteArray = request.getData();
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(requestByteArray);
 				ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
 				Request reqReceived = (Request) objectInputStream.readObject();
-				if (request.getPort() == Ports.FEUDPPort) {
+				logger.setMessage("Request is"+reqReceived.toString());
+				/*if (request.getPort() == Ports.FEUDPPort) {
 					// TODO: multicast to all servers
-
+					logger.setMessage("Request received at RM1 from Front End");
+					
 					InetAddress ahost = InetAddress.getByName("localhost");
 					DatagramPacket request2 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
 							Ports.RM2UDPPort);
@@ -88,7 +87,7 @@ public class ReplicaManager1 implements Runnable {
 						byte[] resultRecieved2 = reply.getData();
 						result2 = new String(resultRecieved2);
 					} catch (SocketTimeoutException e) {
-
+						System.out.println("socket has timed out to send to replica 2");
 					}
 
 					DatagramPacket request3 = new DatagramPacket(requestByteArray, requestByteArray.length, ahost,
@@ -101,10 +100,10 @@ public class ReplicaManager1 implements Runnable {
 						byte[] resultRecieved3 = reply.getData();
 						result3 = new String(resultRecieved3);
 					} catch (SocketTimeoutException e) {
-
+						System.out.println("socket has timed out to send to replica 3");
 					}
 
-				} // received on its own
+				} */// received on its own
 				serverName = reqReceived.managerID.substring(0, 3);
 				System.out.println("Server Name is" + serverName);
 				// create and initialize the ORB
@@ -125,13 +124,11 @@ public class ReplicaManager1 implements Runnable {
 							reqReceived.firstName, reqReceived.lastName, reqReceived.address, reqReceived.phone,
 							reqReceived.specialization, reqReceived.location);
 					if (createTrecordSuccess) {
-						// logger.setMessage("Teacher Record has been
-						// created successfully.");
+						 logger.setMessage("Teacher Record has been created successfully.");
 						System.out.println("RM:Teacher is added successfully.");
 						result = "true";
 					} else {
-						// logger.setMessage("Failed: Teacher Record has not
-						// been created.");
+						 logger.setMessage("Failed: Teacher Record has not been created.");
 						System.out.println("RM:Error: Teacher is not added.");
 						result = "false";
 					}
@@ -140,8 +137,7 @@ public class ReplicaManager1 implements Runnable {
 							reqReceived.firstName, reqReceived.lastName, reqReceived.courseRegistered,
 							reqReceived.status, reqReceived.statusDate);
 					if (createSrecordSucess) {
-						// logger.setMessage("Student Record has been
-						// created successfully.");
+						 logger.setMessage("Student Record has been created successfully.");
 						System.out.println("RM:Student is added successfully.");
 						result = "true";
 					} else {
@@ -153,37 +149,29 @@ public class ReplicaManager1 implements Runnable {
 				} else if (reqReceived.typeOfRequest == 3) {
 					if (callServer.editRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.fieldName,
 							reqReceived.newValue)) {
-						// logger.setMessage("Records edited" + " Record
-						// field -'" + fieldName + "' Record Value - '"
-						// + newValue + "'");
+						 logger.setMessage("Records edited" + " Record field -'" + reqReceived.fieldName + "' Record Value - '" + reqReceived.newValue + "'");
 						System.out.println("RM:Record is successfully edited.");
 						result = "true";
 					} else {
-						// logger.setMessage("Failed: Unable to edit record
-						// " + recordIDEdit);
+						 logger.setMessage("Failed: Unable to edit record" + reqReceived.recordID);
 						System.out.println("RM:Record is not existed or new value is not valid");
 						result = "false";
 					}
 				} else if (reqReceived.typeOfRequest == 4) {
 					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.location)) {
-						// logger.setMessage(
-						// "Record ID: " + recordTransfer + " has been moved
-						// to location " + transferLoc);
+						 logger.setMessage("Record ID: " + reqReceived.recordID + " has been moved to location " + reqReceived.location);
 						System.out.println("RM:Transfer successfull of Record:" + reqReceived.recordID + " to location"
 								+ reqReceived.location);
 						result = "true";
 					} else {
-						// logger.setMessage("Transfer of Record " +
-						// recordTransfer + " has been failed.");
+						 logger.setMessage("Transfer of Record " + reqReceived.recordID + " has been failed.");
 						System.out.println("RM:Transfer unsuccessfull of Record:" + reqReceived.recordID);
 						result = "false";
 					}
 				} else if (reqReceived.typeOfRequest == 5) {
-					// logger.setMessage("Requested for count on all
-					// servers");
+					 logger.setMessage("Requested for count on all servers");
 					String recordInfo = callServer.getRecordCounts();
-					// logger.setMessage("Server response: (Total record
-					// number: " + recordInfo + " )");
+					logger.setMessage("Server response: (Total record number: " + recordInfo + " )");
 					System.out.println("RM:Records are: " + recordInfo);
 					result = "true" + recordInfo;
 				}
@@ -208,16 +196,16 @@ public class ReplicaManager1 implements Runnable {
 
 				DatagramSocket datagramSocket;
 				try {
-					datagramSocket = new DatagramSocket();
+					datagramSocket = new DatagramSocket(Ports.RM1UDPPortHearbeat);
 					System.out.println("I am in try");
 
-					String message = "RM1 is Alive!" + id + "!" + Ports.RM1UDPPort;
+					String message = "RM1 is Alive!" + id + "!" + Ports.RM1UDPPortHearbeat;
 
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
 
 					DatagramPacket sendRequestpacket = new DatagramPacket(bufferSend, bufferSend.length, address,
-							Ports.FEUDPPort);
+							Ports.FEUDPPortHearbeat);
 					datagramSocket.send(sendRequestpacket);
 					System.out.println("sent packet");
 
@@ -231,7 +219,7 @@ public class ReplicaManager1 implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task,  1,30000);
+		timer.scheduleAtFixedRate(task, 1, 30000);
 
 	}
 }

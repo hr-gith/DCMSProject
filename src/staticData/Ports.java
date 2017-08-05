@@ -2,9 +2,15 @@ package staticData;
 
 public class Ports {
 	public static int FEUDPPort = 8000;
+	public static int FEUDPPortHearbeat = 8009;
+	
 	public static int RM1UDPPort = 8010;
 	public static int RM2UDPPort = 8020;
 	public static int RM3UDPPort = 8030;
+	public static int RM1UDPPortHearbeat = 8019;
+	public static int RM2UDPPortHearbeat = 8029;
+	public static int RM3UDPPortHearbeat = 8039;
+	
 	public static int RM1MTL = 8011;
 	public static int RM2MTL = 8021;
 	public static int RM3MTL = 8031;

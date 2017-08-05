@@ -23,6 +23,7 @@ import org.omg.PortableServer.POAHelper;
 import classManagement.Record;
 import classManagement.TeacherRecord;
 import replica1.ReplicaManager1;
+import replica1.utilities.EventLogger;
 import replica2.ReplicaManager2;
 import replica3.ReplicaManager3;
 import replicaManagement.*;
@@ -37,7 +38,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	boolean alive2 = false;
 	boolean alive3 = false;
 	HashMap<Integer, String> replica_info = new HashMap<Integer, String>();
-
+	private EventLogger logger = null;
 	private ORB orb;
 
 	public ORB getOrb() {
@@ -50,6 +51,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 	public FrontEnd() {
 		this.UDPPort = Ports.FEUDPPort;
+		this.logger = new EventLogger("FrontEnd");
 	}
 
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
@@ -64,10 +66,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.phone = phone;
 		req.specialization = specialization;
 		req.location = location;
+		logger.setMessage(managerID + ": Teacher record " + req.recordID + " has been forwarded to RM-Leader");
 		String result = UDPClient(req);
-		if (result.startsWith("true"))
+		if (result.startsWith("true")) {
+			logger.setMessage(managerID + ": Teacher record " + req.recordID + " has been sucessfull.");
 			return true;
-		else
+		} else
 			return false;
 	}
 
@@ -76,7 +80,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.typeOfRequest = Request.GET_COUNT_REQUEST;
 		String result = UDPClient(req);
 
-		return null;
+		return result;
 	}
 
 	public boolean editRecord(String managerID, String recordID, String fieldName, String newValue) {
@@ -87,9 +91,13 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.fieldName = fieldName;
 		req.newValue = newValue;
 		String result = UDPClient(req);
-		if (result.startsWith("true"))
+		logger.setMessage(
+				managerID + ": Editing request of record " + req.recordID + " has been forwarded to RM-Leader");
+		if (result.startsWith("true")) {
+			logger.setMessage(managerID + ": Record " + req.recordID + " has been sucessfully edited.");
 			return true;
-		else
+
+		} else
 			return false;
 	}
 
@@ -104,9 +112,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.courseRegistered = coursesRegistered;
 		req.status = status;
 		String result = UDPClient(req);
-		if (result.startsWith("true"))
+		logger.setMessage(managerID + ": Student record " + req.recordID + " has been forwarded to RM-Leader");
+		if (result.startsWith("true")) {
+			logger.setMessage(managerID + ": Student record " + req.recordID + " has been sucessfull.");
 			return true;
-		else
+
+		} else
 			return false;
 	}
 
@@ -126,11 +137,11 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	public String UDPClient(Request req) {
 		String result = "";
 		DatagramSocket socket = null;
-
+		logger.setMessage("Transfer of request started to RM-Leader : " + this.leaderPort);
 		try {
 			synchronized (req) {
 				while (leaderPort == 0) {
-
+					System.out.println("leader port is 0");
 				}
 				;
 
@@ -139,9 +150,14 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				ObjectOutput oo = new ObjectOutputStream(bos);
 				oo.writeObject(req);
 				oo.close();
+				System.out.println(
+						"111Record " + req.recordID + " has been forwarded to RM-Leader with port" + this.leaderPort+"front end port"+this.UDPPort);
+				
 				socket = new DatagramSocket(this.UDPPort);
 				InetAddress host = InetAddress.getByName("localhost");
 				byte[] serializedMsg = bos.toByteArray();
+				System.out.println(
+						"Record " + req.recordID + " has been forwarded to RM-Leader with port" + this.leaderPort);
 				DatagramPacket request = new DatagramPacket(serializedMsg, serializedMsg.length, host, this.leaderPort);
 				socket.send(request);
 
@@ -257,7 +273,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			public void run() {
 
 				ReplicaManager1.main(null);
-				alive1=true;
+				alive1 = true;
 			}
 
 		}).start();
@@ -266,7 +282,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		new Thread(new Runnable() {
 			public void run() {
 				ReplicaManager2.main(null);
-				alive2=true;
+				alive2 = true;
 			}
 
 		}).start();
@@ -275,7 +291,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		new Thread(new Runnable() {
 			public void run() {
 				ReplicaManager3.main(null);
-				alive3=true;
+				alive3 = true;
 			}
 
 		}).start();
@@ -288,7 +304,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 		try {
 
-			datagramSocket = new DatagramSocket(Ports.FEUDPPort);
+			datagramSocket = new DatagramSocket(Ports.FEUDPPortHearbeat);
 			byte[] bufferReceive = new byte[50];
 			byte[] bufferSend = new byte[50];
 			while (true) {
@@ -310,28 +326,28 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						int portFetched = Integer.parseInt(splitted[2].trim());
 						System.out.println("Port received" + portFetched);
 
-						if (portFetched == Ports.RM1UDPPort) {
-							replica_info.put(Ports.RM1UDPPort, splitted[1].trim());
+						if (portFetched == Ports.RM1UDPPortHearbeat) {
+							replica_info.put(Ports.RM1UDPPortHearbeat, splitted[1].trim());
 							if (splitted[1].trim() != null) {
 								alive1 = true;
 							}
 						}
 
-						else if (portFetched == Ports.RM2UDPPort) {
-							replica_info.put(Ports.RM2UDPPort, splitted[1].trim());
+						else if (portFetched == Ports.RM2UDPPortHearbeat) {
+							replica_info.put(Ports.RM2UDPPortHearbeat, splitted[1].trim());
 							if (splitted[1].trim() != null) {
 								alive2 = true;
 							}
-						} else if (portFetched == Ports.RM3UDPPort) {
-							replica_info.put(Ports.RM3UDPPort, splitted[1].trim());
+						} else if (portFetched == Ports.RM3UDPPortHearbeat) {
+							replica_info.put(Ports.RM3UDPPortHearbeat, splitted[1].trim());
 							if (splitted[1].trim() != null) {
 								alive3 = true;
 							}
 						}
 
-						System.out.println(replica_info.get(Ports.RM1UDPPort));
-						System.out.println(replica_info.get(Ports.RM2UDPPort));
-						System.out.println(replica_info.get(Ports.RM3UDPPort));
+						System.out.println(replica_info.get(Ports.RM1UDPPortHearbeat));
+						System.out.println(replica_info.get(Ports.RM2UDPPortHearbeat));
+						System.out.println(replica_info.get(Ports.RM3UDPPortHearbeat));
 
 						/*
 						 * DatagramPacket sendPackets = new

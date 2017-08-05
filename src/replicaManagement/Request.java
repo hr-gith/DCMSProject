@@ -37,7 +37,12 @@ public class Request implements Serializable{
 
 	public Request() {
 	}
-
+	public String toString(){
+		String returnString="Request Type: "+typeOfRequest+" ManagerID :"+managerID;
+		
+		return returnString;
+		
+	}
 	public Request(int typeOfRequest, String managerID) {
 		this.typeOfRequest = typeOfRequest;
 		this.managerID = managerID;
