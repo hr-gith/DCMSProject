@@ -15,26 +15,26 @@ import java.lang.reflect.Type;
 //import com.google.gson.reflect.TypeToken;
 
 
+
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;
-	// private static final Type DB_TYPE = new TypeToken <Map<String,
-	// ArrayList<Record>>>() {}.getType();
-
+	
 	private HashMap<String, ArrayList<Record>> customerInfoTable = new HashMap<String, ArrayList<Record>>();
 	private String DBFileName;
 
 	public HashRecord(String fileName) {
 		DBFileName = fileName;
+		readFromFile();
 	}
 
 	public synchronized void saveToFile() {
 		try {
-			File fileDB = new File(DBFileName);
-			FileOutputStream fos = new FileOutputStream(fileDB);
+			//File fileDB = new File(DBFileName);
+			FileOutputStream fos = new FileOutputStream("DBFileName");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(customerInfoTable);
@@ -44,32 +44,30 @@ public class HashRecord {
 		} catch (Exception e) {
 			System.out.println("File not found: " + e.getStackTrace());
 		}
-		/*
-		 * try{ String jsonDB = new Gson().toJson(customerInfoTable); File
-		 * DBFile = new File(DBFileName); FileWriter fWriter = new
-		 * FileWriter(DBFile, false); // true to append // false to overwrite.
-		 * fWriter.write(jsonDB); fWriter.close(); }catch (Exception e) {
-		 * System.out.println("File not found" + e.getStackTrace()); }
-		 */
+		
 	}
 
 	public void readFromFile() {
 		File fileDB = new File(DBFileName);
-		if (fileDB.isFile() && fileDB.canRead()) {
-			try {
-				FileInputStream fis = new FileInputStream(fileDB);
-				ObjectInputStream ois = new ObjectInputStream(fis);
+		if (fileDB.exists() && !fileDB.isDirectory()) {
+			if (fileDB.isFile() && fileDB.canRead()) {
+				try {
+					FileInputStream fis = new FileInputStream(fileDB);
+					ObjectInputStream ois = new ObjectInputStream(fis);
 
-				HashMap<String, ArrayList<Record>> mapInFile = (HashMap<String, ArrayList<Record>>) ois.readObject();
+					customerInfoTable = (HashMap<String, ArrayList<Record>>) ois
+							.readObject();
 
-				ois.close();
-				fis.close();
-			} catch (Exception e) {
-				System.out.println(e.getStackTrace());
-			}
-		} else
-			System.out.println("File not found ");
+					ois.close();
+					fis.close();
+				} catch (Exception e) {
+					System.out.println(e.getStackTrace());
+				}
+			} else
+				System.out.println("File not found ");
+		}
 	}
+
 
 	public boolean deleteRecord(String recordID) {
 		// System.out.println("in record delete start "+recordID);

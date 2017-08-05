@@ -1,19 +1,16 @@
 package replica1.servers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-//import com.google.gson.Gson;
-//import com.google.gson.reflect.TypeToken;
-
+import com.google.gson.Gson;
 
 import classManagement.Record;
 import classManagement.StudentRecord;
@@ -21,20 +18,19 @@ import classManagement.TeacherRecord;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;
-	// private static final Type DB_TYPE = new TypeToken <Map<String,
-	// ArrayList<Record>>>() {}.getType();
-
+	
 	private HashMap<String, ArrayList<Record>> customerInfoTable = new HashMap<String, ArrayList<Record>>();
 	private String DBFileName;
 
 	public HashRecord(String fileName) {
 		DBFileName = fileName;
+		readFromFile();
 	}
 
 	public synchronized void saveToFile() {
 		try {
-			File fileDB = new File(DBFileName);
-			FileOutputStream fos = new FileOutputStream(fileDB);
+			//File fileDB = new File(DBFileName);
+			FileOutputStream fos = new FileOutputStream("DBFileName");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(customerInfoTable);
@@ -44,31 +40,28 @@ public class HashRecord {
 		} catch (Exception e) {
 			System.out.println("File not found: " + e.getStackTrace());
 		}
-		/*
-		 * try{ String jsonDB = new Gson().toJson(customerInfoTable); File
-		 * DBFile = new File(DBFileName); FileWriter fWriter = new
-		 * FileWriter(DBFile, false); // true to append // false to overwrite.
-		 * fWriter.write(jsonDB); fWriter.close(); }catch (Exception e) {
-		 * System.out.println("File not found" + e.getStackTrace()); }
-		 */
+		
 	}
 
 	public void readFromFile() {
 		File fileDB = new File(DBFileName);
-		if (fileDB.isFile() && fileDB.canRead()) {
-			try {
-				FileInputStream fis = new FileInputStream(fileDB);
-				ObjectInputStream ois = new ObjectInputStream(fis);
+		if (fileDB.exists() && !fileDB.isDirectory()) {
+			if (fileDB.isFile() && fileDB.canRead()) {
+				try {
+					FileInputStream fis = new FileInputStream(fileDB);
+					ObjectInputStream ois = new ObjectInputStream(fis);
 
-				HashMap<String, ArrayList<Record>> mapInFile = (HashMap<String, ArrayList<Record>>) ois.readObject();
+					customerInfoTable = (HashMap<String, ArrayList<Record>>) ois
+							.readObject();
 
-				ois.close();
-				fis.close();
-			} catch (Exception e) {
-				System.out.println(e.getStackTrace());
-			}
-		} else
-			System.out.println("File not found ");
+					ois.close();
+					fis.close();
+				} catch (Exception e) {
+					System.out.println(e.getStackTrace());
+				}
+			} else
+				System.out.println("File not found ");
+		}
 	}
 
 	public boolean deleteRecord(String recordID) {
@@ -77,9 +70,13 @@ public class HashRecord {
 		String keyValue = record.getLastName().charAt(0) + "".toUpperCase();
 		ArrayList<Record> list = customerInfoTable.get(keyValue);
 		// System.out.println("in record delete.. "+recordID);
-		synchronized (list) {
-			return list.remove(record);
+		synchronized (record) {
+			if (list.remove(record)) {
+				saveToFile();
+				return true;
+			}
 		}
+		return false;
 	}
 
 	public Record getRecordByID(String recordID) {
@@ -110,8 +107,12 @@ public class HashRecord {
 		// .println("--Record Added---");
 		ArrayList<Record> list = customerInfoTable.get(keyValue);
 		synchronized (record) {
-			return list.add(record);
+			if (list.add(record)) {
+				saveToFile();
+				return true;
+			}
 		}
+		return false;
 	}
 
 	public Map<String, ArrayList<Record>> getRecord() {
@@ -123,10 +124,10 @@ public class HashRecord {
 
 		Record recFound = this.getRecordByID(recordID);
 		if (recFound == null) {
-			 //System.out.println("Record not found" + recordID);
+			// System.out.println("Record not found" + recordID);
 			return false;
 		} else {
-			 //System.out.println("Record Found" + recFound.getLastName());
+			// System.out.println("Record Found" + recFound.getLastName());
 			synchronized (recFound) {
 				if (recFound != null) {
 					if (recordID.startsWith("TR")) {
@@ -159,6 +160,7 @@ public class HashRecord {
 					}
 				}
 			}
+			saveToFile();
 			return true;
 
 		}
