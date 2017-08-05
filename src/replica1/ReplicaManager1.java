@@ -211,7 +211,7 @@ public class ReplicaManager1 implements Runnable {
 					datagramSocket = new DatagramSocket();
 					System.out.println("I am in try");
 
-					String message = "I Am Alive!" + id + "!" + Ports.RM1UDPPort;
+					String message = "RM1 is Alive!" + id + "!" + Ports.RM1UDPPort;
 
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
