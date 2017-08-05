@@ -14,8 +14,8 @@ import org.omg.CosNaming.NamingContextExtHelper;
 
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
-import replica1.servers.CenterServers;
-import replica1.utilities.EventLogger;
+import replica2.servers.CenterServers;
+import replica2.utilities.EventLogger;
 import replicaManagement.Request;
 import staticData.Ports;
 
@@ -51,7 +51,7 @@ public class ReplicaManager2 implements Runnable {
 			}
 
 		}).start();
-		System.out.println("RM 1 is started..");
+		System.out.println("RM2 is started..");
 		(new Thread(RM2)).start();
 	}
 
@@ -62,6 +62,8 @@ public class ReplicaManager2 implements Runnable {
 			socket = new DatagramSocket(this.UDPPort);
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
+			logger.setMessage("Run method of rm2");
+
 			while (true) {
 				String result = "", result2 = "", result3 = "";
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);

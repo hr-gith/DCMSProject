@@ -14,8 +14,8 @@ import org.omg.CosNaming.NamingContextExtHelper;
 
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
-import replica1.servers.CenterServers;
-import replica1.utilities.EventLogger;
+import replica3.servers.CenterServers;
+import replica3.utilities.EventLogger;
 import replicaManagement.Request;
 import staticData.Ports;
 
