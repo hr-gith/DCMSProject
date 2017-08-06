@@ -96,10 +96,10 @@ public class ReplicaManager1 implements Runnable {
 				// part of the Interoperable naming Service.
 				NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 				// resolve the Object Reference in Naming
-				String name = serverName + "Server";
+				String name = serverName + "ServerRM1";
 
 				callServer = FrontEndToReplicaManagerHelper.narrow(ncRef.resolve_str(name));
-				if (reqReceived.typeOfRequest == 1) {
+				if (reqReceived.typeOfRequest == Request.CREATE_TEACHER_REQUEST) {
 					// TCreate teacher
 					boolean createTrecordSuccess = callServer.createTRecord(reqReceived.managerID, reqReceived.recordID,
 							reqReceived.firstName, reqReceived.lastName, reqReceived.address, reqReceived.phone,
@@ -113,7 +113,7 @@ public class ReplicaManager1 implements Runnable {
 						System.out.println("RM:Error: Teacher is not added.");
 						result = "false";
 					}
-				} else if (reqReceived.typeOfRequest == 2) {
+				} else if (reqReceived.typeOfRequest == Request.CREATE_STUDENT_REQUEST) {
 					boolean createSrecordSucess = callServer.createSRecord(reqReceived.managerID, reqReceived.recordID,
 							reqReceived.firstName, reqReceived.lastName, reqReceived.courseRegistered,
 							reqReceived.status, reqReceived.statusDate);
@@ -127,7 +127,7 @@ public class ReplicaManager1 implements Runnable {
 						System.out.println("RM:Error: Student is not added.");
 						result = "false";
 					}
-				} else if (reqReceived.typeOfRequest == 3) {
+				} else if (reqReceived.typeOfRequest == Request.EDIT_REQUEST) {
 					if (callServer.editRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.fieldName,
 							reqReceived.newValue)) {
 						logger.setMessage("Records edited" + " Record field -'" + reqReceived.fieldName
@@ -139,31 +139,34 @@ public class ReplicaManager1 implements Runnable {
 						System.out.println("RM:Record is not existed or new value is not valid");
 						result = "false";
 					}
-				} else if (reqReceived.typeOfRequest == 4) {
-					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.location)) {
+				} else if (reqReceived.typeOfRequest == Request.TRANSFER_REQUEST) {
+					logger.setMessage(">>>>>>>>RM1: in request transfer.."+reqReceived.managerID+" "+reqReceived.recordID+" "+reqReceived.destinationServer);
+					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.destinationServer)) {
 						logger.setMessage("Record ID: " + reqReceived.recordID + " has been moved to location "
-								+ reqReceived.location);
+								+ reqReceived.destinationServer);
 						System.out.println("RM:Transfer successfull of Record:" + reqReceived.recordID + " to location"
-								+ reqReceived.location);
+								+ reqReceived.destinationServer);
 						result = "true";
 					} else {
 						logger.setMessage("Transfer of Record " + reqReceived.recordID + " has been failed.");
 						System.out.println("RM:Transfer unsuccessfull of Record:" + reqReceived.recordID);
 						result = "false";
 					}
-				} else if (reqReceived.typeOfRequest == 5) {
+				} else if (reqReceived.typeOfRequest == Request.GET_COUNT_REQUEST) {
 					logger.setMessage("Requested for count on all servers");
 					String recordInfo = callServer.getRecordCounts();
 					logger.setMessage("Server response: (Total record number: " + recordInfo + " )");
-					System.out.println("RM:Records are: " + recordInfo);
-					result = "true" + recordInfo;
+					System.out.println("RM1:Records are: " + recordInfo);
+					System.out.println(">>>>sending to port"+request.getPort());
+					result = "true";
+					System.out.println("RM1: string send is"+result);
 				}
 				//after executing in its own server 
 				//broadcasting to other RMs
 				logger.setMessage("Result after executing on center servers is "+result);
 				if (result.startsWith("true")) {
 					logger.setMessage("Request has sucessfully executed on RM1 : "+serverName);
-					if (request.getPort() == Ports.FEUDPPort) {
+					if (request.getPort() == Ports.FEUDPPort && reqReceived.typeOfRequest != Request.GET_COUNT_REQUEST) {
 						// TODO: multicast to all servers
 						logger.setMessage("Request executed sucessfully so braodcasting to other RMs");
 
@@ -207,6 +210,7 @@ public class ReplicaManager1 implements Runnable {
 					}
 				}
 				// send reply back
+				System.out.println(">>>>sending to port"+request.getPort());
 				reply = new DatagramPacket(result.getBytes(), result.getBytes().length, request.getAddress(),
 						request.getPort());
 				socket.send(reply);

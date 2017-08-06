@@ -33,7 +33,7 @@ public class Request implements Serializable{
 	public String fieldName;
 	public String newValue;
 	//input for transfer record
-	public String remoteCenterServerName;
+	public String destinationServer;
 
 	public Request() {
 	}

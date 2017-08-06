@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import staticData.Ports;
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
+import frontEnd.FrontEnd;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;

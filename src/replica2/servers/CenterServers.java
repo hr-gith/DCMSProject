@@ -2,6 +2,7 @@ package replica2.servers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -13,6 +14,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.io.FileUtils;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -23,6 +25,7 @@ import org.omg.PortableServer.POAHelper;
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
+import frontEnd.FrontEnd;
 import frontEnd.SequenceIdGenerator;
 import replica1.utilities.EventLogger;
 import staticData.Ports;
@@ -55,6 +58,25 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		this.serverPort = serverPort;
 		this.UDPPort = UDPPort;
 		String DBFileName = "DB_RM2" + serverName;
+		
+		int leaderPort = FrontEnd.leaderPort;
+		String leader = "";
+		if (leaderPort == Ports.RM1UDPPort) {
+			leader = "RM1";
+		} else if (leaderPort == Ports.RM2UDPPort) {
+			leader = "RM2";
+		} else if (leaderPort == Ports.RM3UDPPort) {
+			leader = "RM3";
+		}
+		if (!leader.equals("RM2")) {
+			String LeaderFileName = "DB_" + leader + serverName;
+			try {
+				FileUtils.copyFile(new File(LeaderFileName), new File(DBFileName));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				
+			}
+		}
 		record = new HashRecord(DBFileName);
 		this.logger = new EventLogger(this.serverName);
 	}
@@ -85,7 +107,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(MTLServer);
 			FrontEndToReplicaManager href = FrontEndToReplicaManagerHelper.narrow(ref);
 			// bind the Object Reference in Naming
-			String name = "MTLServer";
+			String name = "MTLServerRM2";
 			NameComponent path[] = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(MTLServer.serverName + " server2 is started..");
@@ -97,7 +119,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			ref = rootpoa.servant_to_reference(LVLServer);
 			href = FrontEndToReplicaManagerHelper.narrow(ref);
 
-			name = "LVLServer";
+			name = "LVLServerRM2";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(LVLServer.serverName + " server2 is started..");
@@ -107,7 +129,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			DDOServer.setOrb(orb);
 			ref = rootpoa.servant_to_reference(DDOServer);
 			href = FrontEndToReplicaManagerHelper.narrow(ref);
-			name = "DDOServer";
+			name = "DDOServerRM2";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(DDOServer.serverName + " server2 is started..");
@@ -143,7 +165,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		StudentRecord studentRecord = new StudentRecord(managerID, recordID, firstName, lastName, courseRegisterd,
 				status, statusDate);
 		// EventLogger logger = new EventLogger(this.serverName);
-		// TO-DO: add who in log message
+		// TODO: add who in log message
 
 		if (record.addRecord(studentRecord)) {
 			logger.setMessage(managerID + ": Student record has been Created ~ " + studentRecord.toString());
@@ -210,7 +232,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 			// forward record to the requested server by UDP
 			if (remoteCenterServerName.equalsIgnoreCase("MTL")) {
-				if (this.UDPClient(9991, existingRecord).startsWith("true")) {
+				if (this.UDPClient(Ports.RM2MTL, existingRecord).startsWith("true")) {
 					// System.out.println("transfer is running in transfer
 					// record");
 					return this.deleteRecord(managerID, recordID);
@@ -219,13 +241,13 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 			}
 			if (remoteCenterServerName.equalsIgnoreCase("LVL")) {
-				if (this.UDPClient(9992, existingRecord).startsWith("true"))
+				if (this.UDPClient(Ports.RM2LVL, existingRecord).startsWith("true"))
 					return this.deleteRecord(managerID, recordID);
 				else
 					return false;
 			}
 			if (remoteCenterServerName.equalsIgnoreCase("DDO")) {
-				if (this.UDPClient(9993, existingRecord).startsWith("true"))
+				if (this.UDPClient(Ports.RM2DDO, existingRecord).startsWith("true"))
 					return this.deleteRecord(managerID, recordID);
 				else
 					return false;

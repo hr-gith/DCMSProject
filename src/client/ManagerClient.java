@@ -207,7 +207,7 @@ public class ManagerClient {
 							break;
 						case 3:// Get Record Counts
 							logger.setMessage("Requested for count on all servers");
-							String recordInfo = callServer.getRecordCounts();
+							String recordInfo = callServer.getRecordCounts(managerID);
 							logger.setMessage("Server response: (Total record number: "
 									+ recordInfo + " )");
 							System.out.println("Records are: " + recordInfo);

@@ -75,11 +75,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			return false;
 	}
 
-	public String getRecordCounts() {
+	public String getRecordCounts(String managerID) {
 		Request req = new Request();
 		req.typeOfRequest = Request.GET_COUNT_REQUEST;
+		req.managerID=managerID;
 		String result = UDPClient(req);
-
+		System.out.println("FE:"+ result);
 		return result;
 	}
 
@@ -121,12 +122,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			return false;
 	}
 
-	public boolean transferRecord(String managerID, String recordID, String remoteCenterServerName) {
+	public boolean transferRecord(String managerID, String recordID, String destinationServer) {
 		Request req = new Request();
 		req.typeOfRequest = Request.TRANSFER_REQUEST;
 		req.managerID = managerID;
 		req.recordID = recordID;
-		req.remoteCenterServerName = remoteCenterServerName;
+		req.destinationServer = destinationServer;
 		String result = UDPClient(req);
 		if (result.startsWith("true"))
 			return true;
@@ -157,7 +158,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				InetAddress host = InetAddress.getByName("localhost");
 				byte[] serializedMsg = bos.toByteArray();
 				System.out.println(
-						"Record " + req.recordID + " has been forwarded to RM-Leader with port" + this.leaderPort);
+						"Record " + req.typeOfRequest + " has been forwarded to RM-Leader with port" + this.leaderPort);
 				DatagramPacket request = new DatagramPacket(serializedMsg, serializedMsg.length, host, this.leaderPort);
 				socket.send(request);
 
@@ -267,7 +268,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		boolean RM2 = false;
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
-
+		checkIfAlive();
 		// To start the RM1
 		new Thread(new Runnable() {
 			public void run() {
@@ -295,7 +296,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			}
 
 		}).start();
-		checkIfAlive();
+		
 		// UDP to listen to RM's Heartbeat
 
 		DatagramSocket datagramSocket = null;

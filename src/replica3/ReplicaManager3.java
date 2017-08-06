@@ -57,7 +57,7 @@ public class ReplicaManager3 implements Runnable {
 			}
 
 		}).start();
-		System.out.println("RM 1 is started..");
+		System.out.println("RM3 is started..");
 		(new Thread(RM3)).start();
 	}
 
@@ -96,7 +96,7 @@ public class ReplicaManager3 implements Runnable {
 				// part of the Interoperable naming Service.
 				NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 				// resolve the Object Reference in Naming
-				String name = serverName + "Server";
+				String name = serverName + "ServerRM3";
 
 				callServer = FrontEndToReplicaManagerHelper.narrow(ncRef.resolve_str(name));
 				if (reqReceived.typeOfRequest == 1) {
@@ -140,11 +140,11 @@ public class ReplicaManager3 implements Runnable {
 						result = "false";
 					}
 				} else if (reqReceived.typeOfRequest == 4) {
-					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.location)) {
+					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.destinationServer)) {
 						logger.setMessage("Record ID: " + reqReceived.recordID + " has been moved to location "
-								+ reqReceived.location);
+								+ reqReceived.destinationServer);
 						System.out.println("RM:Transfer successfull of Record:" + reqReceived.recordID + " to location"
-								+ reqReceived.location);
+								+ reqReceived.destinationServer);
 						result = "true";
 					} else {
 						logger.setMessage("Transfer of Record " + reqReceived.recordID + " has been failed.");
@@ -155,15 +155,16 @@ public class ReplicaManager3 implements Runnable {
 					logger.setMessage("Requested for count on all servers");
 					String recordInfo = callServer.getRecordCounts();
 					logger.setMessage("Server response: (Total record number: " + recordInfo + " )");
-					System.out.println("RM:Records are: " + recordInfo);
-					result = "true" + recordInfo;
+					System.out.println("RM3:Records are: " + recordInfo);
+					result = "true";
 				}
 				//after executing in its own server 
 				//broadcasting to other RMs
 				logger.setMessage("Result after executing on center servers is "+result);
 				if (result.startsWith("true")) {
 					logger.setMessage("Request has sucessfully executed on RM3 : "+serverName);
-					if (request.getPort() == Ports.FEUDPPort) {
+					if (request.getPort() == Ports.FEUDPPort && reqReceived.typeOfRequest != Request.GET_COUNT_REQUEST) {
+
 						// TODO: multicast to all servers
 						logger.setMessage("Request executed sucessfully so braodcasting to other RMs");
 

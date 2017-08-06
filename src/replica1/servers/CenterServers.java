@@ -2,6 +2,7 @@ package replica1.servers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,6 +11,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+
+import org.apache.commons.io.FileUtils;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -20,13 +23,15 @@ import org.omg.PortableServer.POAHelper;
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
+import frontEnd.FrontEnd;
 import replica1.utilities.EventLogger;
 import staticData.Ports;
 import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerPOA;
 
-public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnable {
+public class CenterServers extends FrontEndToReplicaManagerPOA implements
+		Runnable {
 
 	public String serverName = "";
 	public int serverPort = 0;
@@ -44,65 +49,91 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		this.orb = orb;
 	}
 
-	public CenterServers(String serverName, int serverPort, int UDPPort) {
+	public CenterServers(String serverName, int serverPort, int UDPPort)
+			 {
 		super();
 		this.serverName = serverName;
 		this.serverPort = serverPort;
 		this.UDPPort = UDPPort;
-		String DBFileName = "DB_RM1" + serverName ;
-		record = new HashRecord(DBFileName);
+		String DBFileName = "DB_RM1" + serverName;
 		this.logger = new EventLogger(this.serverName);
+
+		int leaderPort = FrontEnd.leaderPort;
+		String leader = "";
+		if (leaderPort == Ports.RM1UDPPort) {
+			leader = "RM1";
+		} else if (leaderPort == Ports.RM2UDPPort) {
+			leader = "RM2";
+		} else if (leaderPort == Ports.RM3UDPPort) {
+			leader = "RM3";
+		}
+		if (!leader.equals("RM1")) {
+			String LeaderFileName = "DB_" + leader + serverName;
+			try {
+				FileUtils.copyFile(new File(LeaderFileName), new File(DBFileName));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				
+			}
+		}
+		record = new HashRecord(DBFileName);
+
 	}
 
-	
 	public static void main(String[] args) {
 		// Starting all servers---
 		try {
-			
+
 			// create and initialize the ORB
 			ORB orb = ORB.init(args, null);
 			// get reference to rootpoa & activate the POAManager
-			POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+			POA rootpoa = POAHelper.narrow(orb
+					.resolve_initial_references("RootPOA"));
 			rootpoa.the_POAManager().activate();
 
 			// get the root naming context
 			// NameService invokes the name service
-			org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+			org.omg.CORBA.Object objRef = orb
+					.resolve_initial_references("NameService");
 			// Use NamingContextExt which is part of the Interoperable
 			// Naming Service (INS) specification.
 			NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 
 			// Create object reference of "MTL Server" and bind it to the
 			// registry(name service)
-			CenterServers MTLServer = new CenterServers("MTL", 8890, Ports.RM1MTL);
+			CenterServers MTLServer = new CenterServers("MTL", 8890,
+					Ports.RM1MTL);
 			MTLServer.setOrb(orb);
 			// get object reference from the servant
 			org.omg.CORBA.Object ref = rootpoa.servant_to_reference(MTLServer);
-			FrontEndToReplicaManager href = FrontEndToReplicaManagerHelper.narrow(ref);
+			FrontEndToReplicaManager href = FrontEndToReplicaManagerHelper
+					.narrow(ref);
 			// bind the Object Reference in Naming
-			String name = "MTLServer";
+			String name = "MTLServerRM1";
 			NameComponent path[] = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(MTLServer.serverName + " server1 is started..");
 			(new Thread(MTLServer)).start();
 
-			CenterServers LVLServer = new CenterServers("LVL", 8891, Ports.RM1LVL);
+			CenterServers LVLServer = new CenterServers("LVL", 8891,
+					Ports.RM1LVL);
 			LVLServer.setOrb(orb);
 
 			ref = rootpoa.servant_to_reference(LVLServer);
 			href = FrontEndToReplicaManagerHelper.narrow(ref);
 
-			name = "LVLServer";
+			name = "LVLServerRM1";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(LVLServer.serverName + " server1 is started..");
 			(new Thread(LVLServer)).start();
 
-			CenterServers DDOServer = new CenterServers("DDO", 8892, Ports.RM1DDO);
+			CenterServers DDOServer = new CenterServers("DDO", 8892,
+					Ports.RM1DDO);
 			DDOServer.setOrb(orb);
 			ref = rootpoa.servant_to_reference(DDOServer);
 			href = FrontEndToReplicaManagerHelper.narrow(ref);
-			name = "DDOServer";
+			name = "DDOServerRM1";
 			path = ncRef.to_name(name);
 			ncRef.rebind(path, href);
 			System.out.println(DDOServer.serverName + " server1 is started..");
@@ -115,37 +146,45 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		}
 	}
 
-	public boolean createTRecord(String managerID, String recordID, String firstName, String lastName, String address,
-			String phone, String specialization, String location) {
-		//String teacherID = SequenceIdGenerator.getInstance().getID("TR");
-		TeacherRecord teacherRecord = new TeacherRecord(managerID, recordID, firstName, lastName, address, phone,
-				specialization, location);
+	public boolean createTRecord(String managerID, String recordID,
+			String firstName, String lastName, String address, String phone,
+			String specialization, String location) {
+		// String teacherID = SequenceIdGenerator.getInstance().getID("TR");
+		TeacherRecord teacherRecord = new TeacherRecord(managerID, recordID,
+				firstName, lastName, address, phone, specialization, location);
 		// EventLogger logger = new EventLogger(this.serverName);
 
 		if (record.addRecord(teacherRecord)) {
-			logger.setMessage(managerID + ": Teacher record has been Created ~ " + teacherRecord.toString());
+			logger.setMessage(managerID
+					+ ": Teacher record has been Created ~ "
+					+ teacherRecord.toString());
 			return true;
 		} else {
-			logger.setMessage(
-					managerID + ": Failed: Teacher record has not been created ~ " + teacherRecord.toString());
+			logger.setMessage(managerID
+					+ ": Failed: Teacher record has not been created ~ "
+					+ teacherRecord.toString());
 			return false;
 		}
 	}
 
-	public boolean createSRecord(String managerID, String recordID, String firstName, String lastName,
-			String courseRegisterd, boolean status, String statusDate) {
-		//String studentID = SequenceIdGenerator.getInstance().getID("SR");
-		StudentRecord studentRecord = new StudentRecord(managerID, recordID, firstName, lastName, courseRegisterd,
-				status, statusDate);
+	public boolean createSRecord(String managerID, String recordID,
+			String firstName, String lastName, String courseRegisterd,
+			boolean status, String statusDate) {
+		// String studentID = SequenceIdGenerator.getInstance().getID("SR");
+		StudentRecord studentRecord = new StudentRecord(managerID, recordID,
+				firstName, lastName, courseRegisterd, status, statusDate);
 		// EventLogger logger = new EventLogger(this.serverName);
 		// TO-DO: add who in log message
 
 		if (record.addRecord(studentRecord)) {
-			logger.setMessage(managerID + ": Student record has been Created ~ " + studentRecord.toString());
+			logger.setMessage(managerID
+					+ ": Student record has been Created ~ "
+					+ studentRecord.toString());
 			return true;
 		} else {
-			logger.setMessage(
-					managerID + ": Failed - Student record has not been created ~ " + studentRecord.toString());
+			logger.setMessage(managerID
+					+ ": Failed - Student record has not been created ~ "
+					+ studentRecord.toString());
 			return false;
 		}
 	}
@@ -156,26 +195,32 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 		String result = this.serverName + " : " + record.getRecordCount();
 		if (this.serverName.equals("MTL")) {
-			result += " LVL : " + UDPClient(Ports.RM1LVL, null) + " DDO : " + UDPClient(Ports.RM1DDO, null);
+			result += " LVL : " + UDPClient(Ports.RM1LVL, null) + " DDO : "
+					+ UDPClient(Ports.RM1DDO, null);
 		} else if (this.serverName.equals("LVL")) {
-			result += " MTL : " + UDPClient(Ports.RM1MTL, null) + " DDO : " + UDPClient(Ports.RM1DDO, null);
+			result += " MTL : " + UDPClient(Ports.RM1MTL, null) + " DDO : "
+					+ UDPClient(Ports.RM1DDO, null);
 		} else if (this.serverName.equals("DDO")) {
-			result += " LVL : " + UDPClient(Ports.RM1LVL, null) + " MTL : " + UDPClient(Ports.RM1MTL, null);
+			result += " LVL : " + UDPClient(Ports.RM1LVL, null) + " MTL : "
+					+ UDPClient(Ports.RM1MTL, null);
 		}
 
 		return result;
 	}
 
-	public boolean editRecord(String managerID, String recordID, String fieldName, String newValue) {
+	public boolean editRecord(String managerID, String recordID,
+			String fieldName, String newValue) {
 		// EventLogger logger = new EventLogger(this.serverName);
 
 		if (record.editRecord(recordID, fieldName, newValue)) {
-			logger.setMessage(managerID + ": Editing record" + ": RecordID : " + recordID + " has changed '" + fieldName
-					+ "' to '" + newValue + "'");
+			logger.setMessage(managerID + ": Editing record" + ": RecordID : "
+					+ recordID + " has changed '" + fieldName + "' to '"
+					+ newValue + "'");
 			return true;
 		} else {
-			logger.setMessage(
-					managerID + ": Failed - Editing record: RecordID : " + recordID + " was unable to change");
+			logger.setMessage(managerID
+					+ ": Failed - Editing record: RecordID : " + recordID
+					+ " was unable to change");
 			return false;
 		}
 	}
@@ -184,28 +229,34 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		// System.out.println("Delete record server start");
 		if (record.deleteRecord(recordID)) {
 			// System.out.println("Delete record server");
-			logger.setMessage(managerID + ": Deleting record" + ": RecordID : " + recordID + " has deleted ");
+			logger.setMessage(managerID + ": Deleting record" + ": RecordID : "
+					+ recordID + " has deleted ");
 			return true;
 		} else {
-			logger.setMessage(
-					managerID + ": Failed - Deleting record: RecordID : " + recordID + " was unable to delete");
+			logger.setMessage(managerID
+					+ ": Failed - Deleting record: RecordID : " + recordID
+					+ " was unable to delete");
 			return false;
 		}
 	}
 
-	public boolean transferRecord(String managerID, String recordID, String remoteCenterServerName) {
+	public boolean transferRecord(String managerID, String recordID,
+			String remoteCenterServerName) {
+		System.out.println("-------->>In transfer of center server" + recordID);
 		Record existingRecord = record.getRecordByID(recordID);
 		if (existingRecord == null) {
 			return false;
 		} else {
 			// checks if remoteCenterServernName and managerID are in the same
 			// center
-			if (remoteCenterServerName.equalsIgnoreCase(managerID.substring(0, 3)))
+			if (remoteCenterServerName.equalsIgnoreCase(managerID.substring(0,
+					3)))
 				return false;
 
 			// forward record to the requested server by UDP
 			if (remoteCenterServerName.equalsIgnoreCase("MTL")) {
-				if (this.UDPClient(9991, existingRecord).startsWith("true")) {
+				if (this.UDPClient(Ports.RM1MTL, existingRecord).startsWith(
+						"true")) {
 					// System.out.println("transfer is running in transfer
 					// record");
 					return this.deleteRecord(managerID, recordID);
@@ -214,13 +265,15 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 			}
 			if (remoteCenterServerName.equalsIgnoreCase("LVL")) {
-				if (this.UDPClient(9992, existingRecord).startsWith("true"))
+				if (this.UDPClient(Ports.RM1LVL, existingRecord).startsWith(
+						"true"))
 					return this.deleteRecord(managerID, recordID);
 				else
 					return false;
 			}
 			if (remoteCenterServerName.equalsIgnoreCase("DDO")) {
-				if (this.UDPClient(9993, existingRecord).startsWith("true"))
+				if (this.UDPClient(Ports.RM1DDO, existingRecord).startsWith(
+						"true"))
 					return this.deleteRecord(managerID, recordID);
 				else
 					return false;
@@ -231,16 +284,19 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	public boolean addTransferedRecord(Record record) {
 		if (this.record.addRecord(record)) {
-			logger.setMessage("Transfered Record: " + record.recordID + " is added .");
+			logger.setMessage("Transfered Record: " + record.recordID
+					+ " is added .");
 			return true;
 		} else {
-			logger.setMessage("Transfered Record:" + record.recordID + " could not be saved.");
+			logger.setMessage("Transfered Record:" + record.recordID
+					+ " could not be saved.");
 			return false;
 		}
 	}
 
 	public void run() {
-		System.out.println("UDP Connection for : " + this.serverName + " is listening on port: " + this.UDPPort);
+		System.out.println("UDP Connection for : " + this.serverName
+				+ " is listening on port: " + this.UDPPort);
 		DatagramSocket socket = null;
 		try {
 			socket = new DatagramSocket(this.UDPPort);
@@ -248,7 +304,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			byte[] buffer = new byte[65536];
 			while (true) {
 
-				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+				DatagramPacket request = new DatagramPacket(buffer,
+						buffer.length);
 				socket.receive(request);
 
 				byte[] requestByteArray = request.getData();
@@ -257,27 +314,33 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 					// run count method
 					// System.out.println("count");
 					String count = "" + record.getRecordCount();
-					reply = new DatagramPacket(count.getBytes(), count.getBytes().length, request.getAddress(),
+					reply = new DatagramPacket(count.getBytes(),
+							count.getBytes().length, request.getAddress(),
 							request.getPort());
 					socket.send(reply);
 
 				} else {
 					// run transfer
 					// System.out.println("in runtransfer");
-					ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(requestByteArray);
-					ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-					Record recordToInsert = (Record) objectInputStream.readObject();
+					ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+							requestByteArray);
+					ObjectInputStream objectInputStream = new ObjectInputStream(
+							byteArrayInputStream);
+					Record recordToInsert = (Record) objectInputStream
+							.readObject();
 					// System.out.println(recordToInsert.toString());
 					String insertStatus = null;
 					if (this.addTransferedRecord(recordToInsert)) {
 						insertStatus = "true";
-						reply = new DatagramPacket(insertStatus.getBytes(), insertStatus.getBytes().length,
+						reply = new DatagramPacket(insertStatus.getBytes(),
+								insertStatus.getBytes().length,
 								request.getAddress(), request.getPort());
 						socket.send(reply);
 
 					} else {
 						insertStatus = "false";
-						reply = new DatagramPacket(insertStatus.getBytes(), insertStatus.getBytes().length,
+						reply = new DatagramPacket(insertStatus.getBytes(),
+								insertStatus.getBytes().length,
 								request.getAddress(), request.getPort());
 						socket.send(reply);
 
@@ -299,8 +362,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 	/**
 	 * To send request to other servers by UDP/IP for number of records
 	 * 
-	 * @param int
-	 *            port
+	 * @param int port
 	 * @return String result
 	 */
 	public String UDPClient(int port, Record recordToSend) {
@@ -321,7 +383,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 				outputStream.write(args);
 				outputStream.write(this.serverName.getBytes());
 				// System.out.println("steam : " + outputStream.toString());
-				DatagramPacket request = new DatagramPacket(outputStream.toByteArray(),
+				DatagramPacket request = new DatagramPacket(
+						outputStream.toByteArray(),
 						outputStream.toByteArray().length, ahost, port);
 				// System.out.println(request.getData().toString());
 				socket.send(request);
@@ -338,14 +401,16 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 				// System.out.println("Transfer record");
 				// args[0] = 101;
 				ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-				ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+				ObjectOutputStream objectStream = new ObjectOutputStream(
+						byteStream);
 				// byteStream.write(args);
 				objectStream.writeObject(recordToSend);
 				byte[] buffer = byteStream.toByteArray();
 				// System.out.println(objectStream.toString());
 
-				DatagramPacket request = new DatagramPacket(byteStream.toByteArray(), byteStream.toByteArray().length,
-						ahost, port);
+				DatagramPacket request = new DatagramPacket(
+						byteStream.toByteArray(),
+						byteStream.toByteArray().length, ahost, port);
 				// System.out.println(request.getData().toString());
 				socket.send(request);
 
@@ -367,5 +432,4 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	}
 
-	
 }
