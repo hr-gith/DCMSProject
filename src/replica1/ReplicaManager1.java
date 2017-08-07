@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -32,11 +33,24 @@ public class ReplicaManager1 implements Runnable {
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
 	private EventLogger logger = null;
+	DatagramSocket socket = null;
+	DatagramSocket socket2 = null;
+	DatagramSocket socket3 =null;
 
 	public ReplicaManager1() {
 		this.UDPPort = Ports.RM1UDPPort;
 		this.logger = new EventLogger("RM1Log");
 		this.leaderStatus = false;
+		try {
+			socket = new DatagramSocket(this.UDPPort);
+			socket2 = new DatagramSocket(Ports.RM1UDPPort2);	
+			socket3=new DatagramSocket(Ports.RM1UDPPort3);
+
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	public static void main(String arg[]) {
@@ -62,13 +76,9 @@ public class ReplicaManager1 implements Runnable {
 	}
 
 	public void run() {// for receiving requests
-		DatagramSocket socket = null;
-		DatagramSocket socket2 = null;
-		DatagramSocket socket3 = null;
-
+			
 		try {
-
-			socket = new DatagramSocket(this.UDPPort);
+			
 			
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
@@ -175,7 +185,7 @@ public class ReplicaManager1 implements Runnable {
 						ObjectOutput oo = new ObjectOutputStream(bos);
 						oo.writeObject(reqReceived);
 						oo.close();
-						socket2 = new DatagramSocket(Ports.RM1UDPPort2);						
+											
 						byte[] serializedMsg = bos.toByteArray();
 						InetAddress ahost = InetAddress.getLocalHost();
 						DatagramPacket request2 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
@@ -183,16 +193,21 @@ public class ReplicaManager1 implements Runnable {
 						//TODO: create a new socket
 						socket2.setSoTimeout(40000);
 						try {
+							logger.setMessage("--->>>before send to rm2");
 							socket2.send(request2);
+							logger.setMessage("--->>>after send to rm2");
 							DatagramPacket reply2 = new DatagramPacket(buffer2, buffer2.length);
 							socket2.receive(reply2);
+							logger.setMessage("--->>>after reply from rm2");
 							byte[] resultRecieved2 = reply2.getData();
 							result2 = new String(resultRecieved2);
 							logger.setMessage("Result received from RM2 after Broadcast"+result2);
+							//socket2.close();
+							//socket2=null;
 						} catch (SocketTimeoutException e) {
 							System.out.println("socket has timed out to send to replica 2");
 						}
-						socket3=new DatagramSocket(Ports.RM1UDPPort3);
+						
 						DatagramPacket request3 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
 								Ports.RM3UDPPort);
 						socket3.setSoTimeout(40000);
@@ -203,6 +218,8 @@ public class ReplicaManager1 implements Runnable {
 							byte[] resultRecieved3 = reply3.getData();
 							result3 = new String(resultRecieved3);
 							logger.setMessage("Result received from RM3 after Broadcast"+result3);
+							//socket3.close();
+							//socket3=null;
 						} catch (SocketTimeoutException e) {
 							System.out.println("socket has timed out to send to replica 3");
 						}
@@ -214,9 +231,13 @@ public class ReplicaManager1 implements Runnable {
 				reply = new DatagramPacket(result.getBytes(), result.getBytes().length, request.getAddress(),
 						request.getPort());
 				socket.send(reply);
+				//socket.close();
+				//socket=null;
 			}
 		} catch (Exception e) {
+			e.printStackTrace(System.out);
 		}
+		
 	}
 
 	public static void HearBeat() {
