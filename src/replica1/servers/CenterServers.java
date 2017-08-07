@@ -56,7 +56,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements
 		this.serverPort = serverPort;
 		this.UDPPort = UDPPort;
 		String DBFileName = "DB_RM1" + serverName;
-		this.logger = new EventLogger(this.serverName);
+		this.logger = new EventLogger("RM1_"+this.serverName);
 
 		int leaderPort = FrontEnd.leaderPort;
 		String leader = "";

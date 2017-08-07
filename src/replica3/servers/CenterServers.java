@@ -78,7 +78,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			}
 		}
 		record = new HashRecord(DBFileName);
-		this.logger = new EventLogger(this.serverName);
+		this.logger = new EventLogger("RM3_"+this.serverName);
 	}
 
 	public static void main(String[] args) {
@@ -186,7 +186,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 		} else if (this.serverName.equals("LVL")) {
 			result += " MTL : " + UDPClient(Ports.RM3MTL, null) + " DDO : " + UDPClient(Ports.RM3DDO, null);
 		} else if (this.serverName.equals("DDO")) {
-			result += " LVL : " + UDPClient(Ports.RM3LVL, null) + " MTL : " + UDPClient(Ports.RM3LVL, null);
+			result += " LVL : " + UDPClient(Ports.RM3LVL, null) + " MTL : " + UDPClient(Ports.RM3MTL, null);
 		}
 
 		return result;

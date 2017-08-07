@@ -1,20 +1,13 @@
 package replica3.servers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Type;
-
-//import com.google.gson.Gson;
-//import com.google.gson.reflect.TypeToken;
-
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import classManagement.Record;
 import classManagement.StudentRecord;
@@ -22,7 +15,7 @@ import classManagement.TeacherRecord;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;
-	
+
 	private HashMap<String, ArrayList<Record>> customerInfoTable = new HashMap<String, ArrayList<Record>>();
 	private String DBFileName;
 
@@ -33,7 +26,7 @@ public class HashRecord {
 
 	public synchronized void saveToFile() {
 		try {
-			//File fileDB = new File(DBFileName);
+			// File fileDB = new File(DBFileName);
 			FileOutputStream fos = new FileOutputStream(DBFileName);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
@@ -43,7 +36,8 @@ public class HashRecord {
 			fos.close();
 		} catch (Exception e) {
 			System.out.println("File not found: " + e.getStackTrace());
-		}		
+		}
+
 	}
 
 	public void readFromFile() {
@@ -67,16 +61,19 @@ public class HashRecord {
 		}
 	}
 
-
 	public boolean deleteRecord(String recordID) {
 		// System.out.println("in record delete start "+recordID);
 		Record record = this.getRecordByID(recordID);
 		String keyValue = record.getLastName().charAt(0) + "".toUpperCase();
 		ArrayList<Record> list = customerInfoTable.get(keyValue);
 		// System.out.println("in record delete.. "+recordID);
-		synchronized (list) {
-			return list.remove(record);
+		synchronized (record) {
+			if (list.remove(record)) {
+				saveToFile();
+				return true;
+			}
 		}
+		return false;
 	}
 
 	public Record getRecordByID(String recordID) {
@@ -107,8 +104,12 @@ public class HashRecord {
 		// .println("--Record Added---");
 		ArrayList<Record> list = customerInfoTable.get(keyValue);
 		synchronized (record) {
-			return list.add(record);
+			if (list.add(record)) {
+				saveToFile();
+				return true;
+			}
 		}
+		return false;
 	}
 
 	public Map<String, ArrayList<Record>> getRecord() {
@@ -120,10 +121,10 @@ public class HashRecord {
 
 		Record recFound = this.getRecordByID(recordID);
 		if (recFound == null) {
-			 //System.out.println("Record not found" + recordID);
+			// System.out.println("Record not found" + recordID);
 			return false;
 		} else {
-			 //System.out.println("Record Found" + recFound.getLastName());
+			// System.out.println("Record Found" + recFound.getLastName());
 			synchronized (recFound) {
 				if (recFound != null) {
 					if (recordID.startsWith("TR")) {
@@ -139,7 +140,8 @@ public class HashRecord {
 					} else if (recordID.startsWith("SR")) {
 						// Student record
 						if (fieldName.equals("courseregistered")) {
-							((StudentRecord) recFound).setCourseRegistered(newValue);
+							((StudentRecord) recFound)
+									.setCourseRegistered(newValue);
 						} else if (fieldName.equals("status")) {
 							boolean status = false;
 							if (newValue.toLowerCase().equals("active"))
@@ -156,6 +158,7 @@ public class HashRecord {
 					}
 				}
 			}
+			saveToFile();
 			return true;
 
 		}

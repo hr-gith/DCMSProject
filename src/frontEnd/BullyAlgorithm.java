@@ -15,21 +15,21 @@ public class BullyAlgorithm {
 		System.out.println("In election Algorithm");
 		int leader;
       
-        if(replica_id.get(Ports.RM1UDPPort)==null){
-			replica_id.put(Ports.RM1UDPPort, "0");
+        if(replica_id.get(Ports.RM1UDPPortHearbeat)==null){
+			replica_id.put(Ports.RM1UDPPortHearbeat, "0");
 		}
-		int replicaid1=Integer.parseInt(replica_id.get(Ports.RM1UDPPort).trim());
+		int replicaid1=Integer.parseInt(replica_id.get(Ports.RM1UDPPortHearbeat).trim());
 		
 		
-		if(replica_id.get(Ports.RM2UDPPort)==null){
-			replica_id.put(Ports.RM2UDPPort, "0");
+		if(replica_id.get(Ports.RM2UDPPortHearbeat)==null){
+			replica_id.put(Ports.RM2UDPPortHearbeat, "0");
 		}
-		int replicaid2=Integer.parseInt(replica_id.get(Ports.RM2UDPPort).trim());
+		int replicaid2=Integer.parseInt(replica_id.get(Ports.RM2UDPPortHearbeat).trim());
 		
-		if(replica_id.get(Ports.RM3UDPPort)==null){
-			replica_id.put(Ports.RM3UDPPort, "0");
+		if(replica_id.get(Ports.RM3UDPPortHearbeat)==null){
+			replica_id.put(Ports.RM3UDPPortHearbeat, "0");
 		}
-		int replicaid3=Integer.parseInt(replica_id.get(Ports.RM3UDPPort).trim());
+		int replicaid3=Integer.parseInt(replica_id.get(Ports.RM3UDPPortHearbeat).trim());
 		System.out.println(replicaid1);
 		System.out.println(replicaid2);
 		System.out.println(replicaid3);
@@ -47,7 +47,7 @@ public class BullyAlgorithm {
 				leader =replicaid3;
 			}
 			
-			if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM1UDPPort){
+			if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM1UDPPortHearbeat){
 				new Thread(new Runnable(){
 
 					public void run() {
@@ -57,7 +57,7 @@ public class BullyAlgorithm {
 						
 				}).start();
 			}
-			else if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM2UDPPort){
+			else if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM2UDPPortHearbeat){
 				new Thread(new Runnable(){
 
 					public void run() {

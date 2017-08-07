@@ -57,7 +57,7 @@ public class ReplicaManager1 implements Runnable {
 			}
 
 		}).start();
-		System.out.println("RM 1 is started..");
+		System.out.println("RM1 is started..");
 		(new Thread(rm1)).start();
 	}
 

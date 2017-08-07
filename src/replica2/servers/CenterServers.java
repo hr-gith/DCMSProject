@@ -78,7 +78,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 			}
 		}
 		record = new HashRecord(DBFileName);
-		this.logger = new EventLogger(this.serverName);
+		this.logger = new EventLogger("RM2_"+this.serverName);
 	}
 
 	

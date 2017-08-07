@@ -3,18 +3,15 @@ package replica1.servers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import staticData.Ports;
 import classManagement.Record;
 import classManagement.StudentRecord;
 import classManagement.TeacherRecord;
-import frontEnd.FrontEnd;
 
 public class HashRecord {
 	private static HashRecord cutomerRecordObject = null;

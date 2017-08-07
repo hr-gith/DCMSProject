@@ -112,6 +112,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		req.lastName = lastName;
 		req.courseRegistered = coursesRegistered;
 		req.status = status;
+		req.statusDate = statusDate;
 		String result = UDPClient(req);
 		logger.setMessage(managerID + ": Student record " + req.recordID + " has been forwarded to RM-Leader");
 		if (result.startsWith("true")) {
@@ -192,75 +193,93 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				if (alive1 == false && leaderPort == Ports.RM1UDPPort) {
 					System.out.println("RM1 1 has failed, calling elction algorithm");
 					BullyAlgorithm obj = new BullyAlgorithm();
-					Integer information = Integer.parseInt(obj.Election(replica_info));
+					
+					String leaderId = obj.Election(replica_info);
+					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
+					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
+						leaderPort = Ports.RM1UDPPort;
+					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
+						leaderPort = Ports.RM2UDPPort;
+					else 
+						leaderPort = Ports.RM3UDPPort;					
+					
+					/*////Commented by Hamideh !!!!! how many times election
+					 * Integer information = Integer.parseInt(obj.Election(replica_info));
 					getKeyFromValue(replica_info, obj.Election(replica_info));
 					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
 					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
 					leaderPort = keyValue;
+					*/
+
 
 				} else {
 					System.out.println("RM1 has failed and starting it now");
 					if (alive1 == false)
 						new Thread(new Runnable() {
-
 							public void run() {
-
 								ReplicaManager1.main(null);
 							}
-
 						}).start();
 
 				}
 				if (alive2 == false && leaderPort == Ports.RM2UDPPort) {
 					BullyAlgorithm obj = new BullyAlgorithm();
-					Integer information = Integer.parseInt(obj.Election(replica_info));
+					/*Integer information = Integer.parseInt(obj.Election(replica_info));
 					getKeyFromValue(replica_info, obj.Election(replica_info));
 					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
 					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;
+					leaderPort = keyValue;*/
+					String leaderId = obj.Election(replica_info);
+					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
+					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
+						leaderPort = Ports.RM1UDPPort;
+					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
+						leaderPort = Ports.RM2UDPPort;
+					else 
+						leaderPort = Ports.RM3UDPPort;					
 				}
-
 				else {
 					if (alive2 == false)
-
 						new Thread(new Runnable() {
-
 							public void run() {
 								ReplicaManager2.main(null);
 							}
-
 						}).start();
-
 				}
 				if (alive3 == false && leaderPort == Ports.RM3UDPPort) {
 					BullyAlgorithm obj = new BullyAlgorithm();
-					Integer information = Integer.parseInt(obj.Election(replica_info));
+					/*Integer information = Integer.parseInt(obj.Election(replica_info));
 					getKeyFromValue(replica_info, obj.Election(replica_info));
 					// this.UDPPort =
 					// Integer.parseInt(replica_info.get(information).trim());
 					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
 					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;
+					leaderPort = keyValue;*/
+					String leaderId = obj.Election(replica_info);
+					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
+					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
+						leaderPort = Ports.RM1UDPPort;
+					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
+						leaderPort = Ports.RM2UDPPort;
+					else 
+						leaderPort = Ports.RM3UDPPort;
 				}
 
 				else {
 					if (alive3 == false)
-
 						new Thread(new Runnable() {
-
 							public void run() {
 								ReplicaManager3.main(null);
 							}
-
 						}).start();
-
 				}
-
 			}
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 30000, 40000);
-
 	}
 
 	public void run() {
