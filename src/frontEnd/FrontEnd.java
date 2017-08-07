@@ -52,6 +52,30 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	public FrontEnd() {
 		this.UDPPort = Ports.FEUDPPort;
 		this.logger = new EventLogger("FrontEnd");
+		new Thread(new Runnable() {
+			public void run() {
+
+				ReplicaManager1.main(null);
+			}
+
+		}).start();
+
+		// To start the RM2
+		new Thread(new Runnable() {
+			public void run() {
+				ReplicaManager2.main(null);
+			}
+
+		}).start();
+
+		// To start the RM3
+		new Thread(new Runnable() {
+			public void run() {
+				ReplicaManager3.main(null);
+			}
+
+		}).start();
+
 	}
 
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
@@ -136,7 +160,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			return false;
 	}
 
-	public String UDPClient(Request req) {
+	public synchronized String UDPClient(Request req) {
 		String result = "";
 		DatagramSocket socket = null;
 		logger.setMessage("Transfer of request started to RM-Leader : " + this.leaderPort);
@@ -283,7 +307,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	}
 
 	public void run() {
-		boolean RM = false;
+		/*boolean RM = false;
 		boolean RM2 = false;
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
@@ -333,9 +357,9 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				// datagramSocket.setSoTimeout(1000);
 				while (true) {
 					try {
-						/*
-						 * RM = false; RM2 = false; Rm3 = false;
-						 */
+						
+						//  RM = false; RM2 = false; Rm3 = false;
+						 
 						datagramSocket.receive(receivedPacket);
 						heartBeat = new String(receivedPacket.getData());
 						System.out.println("Received the heartbeat" + heartBeat);
@@ -369,12 +393,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						System.out.println(replica_info.get(Ports.RM2UDPPortHearbeat));
 						System.out.println(replica_info.get(Ports.RM3UDPPortHearbeat));
 
-						/*
-						 * DatagramPacket sendPackets = new
-						 * DatagramPacket(bufferSend, bufferSend.length,
-						 * receivedPacket.getAddress(),
-						 * receivedPacket.getPort());
-						 */
+						
+						// DatagramPacket sendPackets = new
+						 //DatagramPacket(bufferSend, bufferSend.length,
+						 //receivedPacket.getAddress(),
+						 //receivedPacket.getPort());
+						
 
 					}
 
@@ -391,7 +415,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 			System.out.println("IO :" + e.getMessage());
 
-		}
+		}*/
 
 	}
 
@@ -436,7 +460,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			System.out.println("Front End is started..");
 			(new Thread(frontEnd)).start();
 			orb.run();
-
+			
 		} catch (Exception e) {
 			System.err.println("ERROR: " + e);
 			e.printStackTrace(System.out);

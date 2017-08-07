@@ -219,7 +219,7 @@ public class ReplicaManager2 implements Runnable {
 	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		TimerTask task = new TimerTask() {
+		/*TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -251,6 +251,6 @@ public class ReplicaManager2 implements Runnable {
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 1, 30000);
-
+*/
 	}
 }
