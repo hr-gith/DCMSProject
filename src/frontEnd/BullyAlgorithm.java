@@ -16,18 +16,18 @@ public class BullyAlgorithm {
 		int leader;
       
         if(replica_id.get(Ports.RM1UDPPortHearbeat)==null){
-			replica_id.put(Ports.RM1UDPPortHearbeat, "0");
+			replica_id.put(Ports.RM1UDPPortHearbeat, "1000");
 		}
 		int replicaid1=Integer.parseInt(replica_id.get(Ports.RM1UDPPortHearbeat).trim());
 		
 		
 		if(replica_id.get(Ports.RM2UDPPortHearbeat)==null){
-			replica_id.put(Ports.RM2UDPPortHearbeat, "0");
+			replica_id.put(Ports.RM2UDPPortHearbeat, "1001");
 		}
 		int replicaid2=Integer.parseInt(replica_id.get(Ports.RM2UDPPortHearbeat).trim());
 		
 		if(replica_id.get(Ports.RM3UDPPortHearbeat)==null){
-			replica_id.put(Ports.RM3UDPPortHearbeat, "0");
+			replica_id.put(Ports.RM3UDPPortHearbeat, "1002");
 		}
 		int replicaid3=Integer.parseInt(replica_id.get(Ports.RM3UDPPortHearbeat).trim());
 		System.out.println(replicaid1);
@@ -36,6 +36,10 @@ public class BullyAlgorithm {
 		
 			
 		//Leader	
+		//Integer.co
+		
+		//System.out.println("Integer.compare(replicaid1, replicaid2)" +Integer.compare(replicaid1, replicaid2));
+		
 			if(Integer.compare(replicaid1, replicaid2) <0 && Integer.compare(replicaid1, replicaid3)<0){
 				leader=replicaid1;
 			}
@@ -48,17 +52,17 @@ public class BullyAlgorithm {
 			}
 			
 			if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM1UDPPortHearbeat){
-				new Thread(new Runnable(){
+				//new Thread(new Runnable(){
 
-					public void run() {
+					/*public void run() {
 		
 						ReplicaManager1.main(null);	
 					}
 						
-				}).start();
+				}).start();*/
 			}
 			else if(getKeyFromValue(replica_id,Integer.toString(leader))== Ports.RM2UDPPortHearbeat){
-				new Thread(new Runnable(){
+				/*new Thread(new Runnable(){
 
 					public void run() {
 		
@@ -67,9 +71,10 @@ public class BullyAlgorithm {
 						
 				}).start();
 			}
-			
+*/
+			}
 			else{
-				new Thread(new Runnable(){
+				/*new Thread(new Runnable(){
 
 					public void run() {
 		
@@ -77,8 +82,9 @@ public class BullyAlgorithm {
 					}
 						
 				}).start();
-				
+*/				
 			}
+			System.out.println("New leader ID is " + leader);
 			return Integer.toString(leader);
 		
 	}

@@ -22,11 +22,15 @@ import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import replica1.servers.CenterServers;
 import replica1.utilities.EventLogger;
+import replicaManagement.ReplicaID;
+import replicaManagement.ReplicaManager;
 import replicaManagement.Request;
 import staticData.Ports;
+import sun.text.normalizer.ReplaceableUCharacterIterator;
 
-public class ReplicaManager1 implements Runnable {
-	public static int id = 1;
+public class ReplicaManager1  implements Runnable {
+	static int id ;
+	//public static int id = 1;
 	public boolean leaderStatus;
 	public int UDPPort;
 	String serverName = null;
@@ -37,6 +41,9 @@ public class ReplicaManager1 implements Runnable {
 		this.UDPPort = Ports.RM1UDPPort;
 		this.logger = new EventLogger("RM1Log");
 		this.leaderStatus = false;
+		id = ReplicaID.Id;
+		ReplicaID.Id++;
+		
 	}
 
 	public static void main(String arg[]) {
@@ -45,7 +52,7 @@ public class ReplicaManager1 implements Runnable {
 
 			public void run() {
 				// TODO Auto-generated method stub
-				CenterServers.main(null);
+				replica1.servers.CenterServers.main(null);
 			}
 		}).start();
 
@@ -57,7 +64,9 @@ public class ReplicaManager1 implements Runnable {
 			}
 
 		}).start();
+		System.out.println("id in RM1");
 		System.out.println("RM1 is started..");
+		
 		(new Thread(rm1)).start();
 	}
 
@@ -222,7 +231,7 @@ public class ReplicaManager1 implements Runnable {
 	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		/*TimerTask task = new TimerTask() {
+		TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -233,8 +242,9 @@ public class ReplicaManager1 implements Runnable {
 					datagramSocket = new DatagramSocket(Ports.RM1UDPPortHearbeat);
 					System.out.println("I am in try");
 
-					String message = "RM1 is Alive!" + id + "!" + Ports.RM1UDPPortHearbeat;
-
+					String message = "RM1 is Alive!" + ReplicaID.Id + "!" + Ports.RM1UDPPortHearbeat;
+					ReplicaID.Id++;
+					System.out.println("Replica id 1"+ id);
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
 
@@ -254,6 +264,6 @@ public class ReplicaManager1 implements Runnable {
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 1, 30000);
-*/
+
 	}
 }

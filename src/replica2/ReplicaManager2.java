@@ -22,11 +22,14 @@ import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import replica2.servers.CenterServers;
 import replica2.utilities.EventLogger;
+import replicaManagement.ReplicaID;
+import replicaManagement.ReplicaManager;
 import replicaManagement.Request;
 import staticData.Ports;
 
-public class ReplicaManager2 implements Runnable {
-	public static int id = 2;
+public class ReplicaManager2  implements Runnable {
+	//public static int id = 2;
+	static int id ;
 	public boolean leaderStatus;
 	public int UDPPort;
 	String serverName = null;
@@ -37,6 +40,10 @@ public class ReplicaManager2 implements Runnable {
 		this.UDPPort = Ports.RM2UDPPort;
 		this.logger = new EventLogger("RM2Log");
 		this.leaderStatus = false;
+		id = ReplicaID.Id;
+		ReplicaID.Id++;
+		
+		
 	}
 
 	public static void main(String arg[]) {
@@ -45,7 +52,7 @@ public class ReplicaManager2 implements Runnable {
 
 			public void run() {
 				// TODO Auto-generated method stub
-				CenterServers.main(null);
+				replica2.servers.CenterServers.main(null);
 			}
 		}).start();
 
@@ -219,8 +226,10 @@ public class ReplicaManager2 implements Runnable {
 	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		/*TimerTask task = new TimerTask() {
+		TimerTask task = new TimerTask() {
 
+			
+			
 			@Override
 			public void run() {
 				System.out.println("I am in timer");
@@ -229,9 +238,11 @@ public class ReplicaManager2 implements Runnable {
 				try {
 					datagramSocket = new DatagramSocket(Ports.RM2UDPPortHearbeat);
 					System.out.println("I am in try");
-
-					String message = "RM2 is Alive!" + id + "!" + Ports.RM2UDPPortHearbeat;
-
+					
+					String message = "RM2 is Alive!" + id  + "!" + Ports.RM2UDPPortHearbeat;
+					
+					
+					System.out.println("Replica id 2 " + id);
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
 
@@ -251,6 +262,6 @@ public class ReplicaManager2 implements Runnable {
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 1, 30000);
-*/
+
 	}
 }

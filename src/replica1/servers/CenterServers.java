@@ -357,6 +357,10 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements
 
 			e.printStackTrace();
 		}
+		finally{
+			if(socket!=null)
+				socket.close();
+		}
 	}
 
 	/**
@@ -427,6 +431,10 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		finally{
+			if(socket!=null)
+				socket.close();
 		}
 		return result;
 

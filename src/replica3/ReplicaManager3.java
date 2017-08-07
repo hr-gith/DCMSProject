@@ -22,11 +22,14 @@ import FrontEndToReplicaManager.FrontEndToReplicaManager;
 import FrontEndToReplicaManager.FrontEndToReplicaManagerHelper;
 import replica3.servers.CenterServers;
 import replica3.utilities.EventLogger;
+import replicaManagement.ReplicaID;
+import replicaManagement.ReplicaManager;
 import replicaManagement.Request;
 import staticData.Ports;
 
 public class ReplicaManager3 implements Runnable {
-	public static int id = 3;
+	//public static int id = 3;
+	static int id ;
 	public boolean leaderStatus;
 	public int UDPPort;
 	String serverName = null;
@@ -37,6 +40,9 @@ public class ReplicaManager3 implements Runnable {
 		this.UDPPort = Ports.RM3UDPPort;
 		this.logger = new EventLogger("RM3Log");
 		this.leaderStatus = false;
+		id = ReplicaID.Id;
+		ReplicaID.Id++;
+		
 	}
 
 	public static void main(String arg[]) {
@@ -45,7 +51,7 @@ public class ReplicaManager3 implements Runnable {
 
 			public void run() {
 				// TODO Auto-generated method stub
-				CenterServers.main(null);
+				replica3.servers.CenterServers.main(null);
 			}
 		}).start();
 
@@ -219,7 +225,7 @@ public class ReplicaManager3 implements Runnable {
 	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
 
-		/*TimerTask task = new TimerTask() {
+		TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
@@ -231,7 +237,8 @@ public class ReplicaManager3 implements Runnable {
 					System.out.println("I am in try");
 
 					String message = "RM3 is Alive!" + id + "!" + Ports.RM3UDPPortHearbeat;
-
+					
+					System.out.println("Replica id 3 "+ id );
 					InetAddress address = InetAddress.getLocalHost();
 					byte[] bufferSend = message.getBytes();
 
@@ -251,6 +258,6 @@ public class ReplicaManager3 implements Runnable {
 		};
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(task, 1, 30000);
-*/
+
 	}
 }

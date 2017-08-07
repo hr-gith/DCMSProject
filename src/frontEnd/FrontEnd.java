@@ -34,9 +34,9 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 	public int UDPPort;
 	public static int leaderPort = Ports.RM1UDPPort;
-	boolean alive1 = false;
-	boolean alive2 = false;
-	boolean alive3 = false;
+	boolean alive1;// = false;
+	boolean alive2;// = false;
+	boolean alive3;// = false;
 	HashMap<Integer, String> replica_info = new HashMap<Integer, String>();
 	private EventLogger logger = null;
 	private ORB orb;
@@ -49,7 +49,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		this.orb = orb;
 	}
 
-	public FrontEnd() {
+	/*public FrontEnd() {
 		this.UDPPort = Ports.FEUDPPort;
 		this.logger = new EventLogger("FrontEnd");
 		new Thread(new Runnable() {
@@ -77,7 +77,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		}).start();
 
 	}
-
+*/
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
 			String specialization, String location) {
 		Request req = new Request();
@@ -213,14 +213,14 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 			@Override
 			public void run() {
-				System.out.println("I am run of alive");
+				System.out.println("I am run of alive" + alive1 + alive2 + alive3);
 				if (alive1 == false && leaderPort == Ports.RM1UDPPort) {
 					System.out.println("RM1 1 has failed, calling elction algorithm");
 					BullyAlgorithm obj = new BullyAlgorithm();
 					
 					String leaderId = obj.Election(replica_info);
 					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
-					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					System.out.println("New Leader port is" +  UDPPort + leaderId);
 					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
 						leaderPort = Ports.RM1UDPPort;
 					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
@@ -238,7 +238,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 
 				} else {
-					System.out.println("RM1 has failed and starting it now");
+					//System.out.println("RM1 has failed and starting it now");
 					if (alive1 == false)
 						new Thread(new Runnable() {
 							public void run() {
@@ -256,7 +256,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 					leaderPort = keyValue;*/
 					String leaderId = obj.Election(replica_info);
 					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
-					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					System.out.println("New Leader port is"  + leaderId);
 					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
 						leaderPort = Ports.RM1UDPPort;
 					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
@@ -265,6 +265,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						leaderPort = Ports.RM3UDPPort;					
 				}
 				else {
+					//System.out.println("RM2 has failed and starting it now");
 					if (alive2 == false)
 						new Thread(new Runnable() {
 							public void run() {
@@ -283,7 +284,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 					leaderPort = keyValue;*/
 					String leaderId = obj.Election(replica_info);
 					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
-					System.out.println("New Leader port is" + replica_info.get(leaderId) + UDPPort + leaderId);
+					System.out.println("New Leader port is" + leaderId);
 					if (leaderHeartBeatPort == Ports.RM1UDPPortHearbeat)
 						leaderPort = Ports.RM1UDPPort;
 					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
@@ -293,6 +294,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				}
 
 				else {
+					//System.out.println("RM3 has failed and starting it now");
 					if (alive3 == false)
 						new Thread(new Runnable() {
 							public void run() {
@@ -303,17 +305,20 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			}
 		};
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 30000, 40000);
+		timer.scheduleAtFixedRate(task, 40000, 40000);
 	}
 
 	public void run() {
-		/*boolean RM = false;
+		alive1= false;
+		alive2 = false;
+		alive3= false;
+		boolean RM = false;
 		boolean RM2 = false;
 		boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
 		checkIfAlive();
 		// To start the RM1
-		new Thread(new Runnable() {
+		/*new Thread(new Runnable() {
 			public void run() {
 
 				ReplicaManager1.main(null);
@@ -321,15 +326,15 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 			}
 
 		}).start();
-
+*/
 		// To start the RM2
-		new Thread(new Runnable() {
+		/*new Thread(new Runnable() {
 			public void run() {
 				ReplicaManager2.main(null);
 				alive2 = true;
 			}
 
-		}).start();
+		}).start();*/
 
 		// To start the RM3
 		new Thread(new Runnable() {
@@ -372,6 +377,8 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 						if (portFetched == Ports.RM1UDPPortHearbeat) {
 							replica_info.put(Ports.RM1UDPPortHearbeat, splitted[1].trim());
+							alive1 = true;
+							System.out.println("Status of RM1" + alive1);
 							if (splitted[1].trim() != null) {
 								alive1 = true;
 							}
@@ -379,11 +386,13 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 						else if (portFetched == Ports.RM2UDPPortHearbeat) {
 							replica_info.put(Ports.RM2UDPPortHearbeat, splitted[1].trim());
+							alive2 = true;
 							if (splitted[1].trim() != null) {
 								alive2 = true;
 							}
 						} else if (portFetched == Ports.RM3UDPPortHearbeat) {
 							replica_info.put(Ports.RM3UDPPortHearbeat, splitted[1].trim());
+							alive3 = true;
 							if (splitted[1].trim() != null) {
 								alive3 = true;
 							}
@@ -415,7 +424,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 
 			System.out.println("IO :" + e.getMessage());
 
-		}*/
+		}
 
 	}
 
