@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,14 +36,30 @@ public class ReplicaManager3 implements Runnable {
 	String serverName = null;
 	static FrontEndToReplicaManager callServer;
 	private EventLogger logger = null;
+	DatagramSocket socket = null;
+	DatagramSocket socket2 = null;
+	DatagramSocket socket3 = null;
 
 	public ReplicaManager3() {
 		this.UDPPort = Ports.RM3UDPPort;
 		this.logger = new EventLogger("RM3Log");
 		this.leaderStatus = false;
+
 		id = ReplicaID.Id;
 		ReplicaID.Id++;
 		
+
+		try {
+			socket = new DatagramSocket(this.UDPPort);
+			socket2 = new DatagramSocket(Ports.RM3UDPPort2);
+			socket3 = new DatagramSocket(Ports.RM3UDPPort3);
+
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
 	}
 
 	public static void main(String arg[]) {
@@ -68,14 +85,9 @@ public class ReplicaManager3 implements Runnable {
 	}
 
 	public void run() {// for receiving requests
-		DatagramSocket socket = null;
-		DatagramSocket socket2 = null;
-		DatagramSocket socket3 = null;
 
 		try {
 
-			socket = new DatagramSocket(this.UDPPort);
-			
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
 			byte[] buffer2 = new byte[65536];
@@ -84,7 +96,7 @@ public class ReplicaManager3 implements Runnable {
 				String result = "", result2 = "", result3 = "";
 				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 				socket.receive(request);
-				logger.setMessage("Request received at RM3 from port: "+request.getPort());
+				logger.setMessage("Request received at RM3 from port: " + request.getPort());
 				byte[] requestByteArray = request.getData();
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(requestByteArray);
 				ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
@@ -111,7 +123,8 @@ public class ReplicaManager3 implements Runnable {
 							reqReceived.firstName, reqReceived.lastName, reqReceived.address, reqReceived.phone,
 							reqReceived.specialization, reqReceived.location);
 					if (createTrecordSuccess) {
-						logger.setMessage("Teacher Record :"+reqReceived.recordID+" has been created successfully.");
+						logger.setMessage(
+								"Teacher Record :" + reqReceived.recordID + " has been created successfully.");
 						System.out.println("RM:Teacher is added successfully.");
 						result = "true";
 					} else {
@@ -124,7 +137,8 @@ public class ReplicaManager3 implements Runnable {
 							reqReceived.firstName, reqReceived.lastName, reqReceived.courseRegistered,
 							reqReceived.status, reqReceived.statusDate);
 					if (createSrecordSucess) {
-						logger.setMessage("Student Record :"+reqReceived.recordID+" has been created successfully.");
+						logger.setMessage(
+								"Student Record :" + reqReceived.recordID + " has been created successfully.");
 						System.out.println("RM:Student is added successfully.");
 						result = "true";
 					} else {
@@ -146,7 +160,8 @@ public class ReplicaManager3 implements Runnable {
 						result = "false";
 					}
 				} else if (reqReceived.typeOfRequest == 4) {
-					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID, reqReceived.destinationServer)) {
+					if (callServer.transferRecord(reqReceived.managerID, reqReceived.recordID,
+							reqReceived.destinationServer)) {
 						logger.setMessage("Record ID: " + reqReceived.recordID + " has been moved to location "
 								+ reqReceived.destinationServer);
 						System.out.println("RM:Transfer successfull of Record:" + reqReceived.recordID + " to location"
@@ -164,27 +179,26 @@ public class ReplicaManager3 implements Runnable {
 					System.out.println("RM3:Records are: " + recordInfo);
 					result = "true";
 				}
-				//after executing in its own server 
-				//broadcasting to other RMs
-				logger.setMessage("Result after executing on center servers is "+result);
+				// after executing in its own server
+				// broadcasting to other RMs
+				logger.setMessage("Result after executing on center servers is " + result);
 				if (result.startsWith("true")) {
-					logger.setMessage("Request has sucessfully executed on RM3 : "+serverName);
-					if (request.getPort() == Ports.FEUDPPort && reqReceived.typeOfRequest != Request.GET_COUNT_REQUEST) {
+					logger.setMessage("Request has sucessfully executed on RM3 : " + serverName);
+					if (request.getPort() == Ports.FEUDPPort
+							&& reqReceived.typeOfRequest != Request.GET_COUNT_REQUEST) {
 
 						// TODO: multicast to all servers
 						logger.setMessage("Request executed sucessfully so braodcasting to other RMs");
 
-												
 						ByteArrayOutputStream bos = new ByteArrayOutputStream();
 						ObjectOutput oo = new ObjectOutputStream(bos);
 						oo.writeObject(reqReceived);
 						oo.close();
-						socket2 = new DatagramSocket(Ports.RM3UDPPort2);						
 						byte[] serializedMsg = bos.toByteArray();
 						InetAddress ahost = InetAddress.getLocalHost();
 						DatagramPacket request2 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
 								Ports.RM2UDPPort);
-						//TODO: create a new socket
+						// TODO: create a new socket
 						socket2.setSoTimeout(40000);
 						try {
 							socket2.send(request2);
@@ -192,11 +206,11 @@ public class ReplicaManager3 implements Runnable {
 							socket2.receive(reply2);
 							byte[] resultRecieved2 = reply2.getData();
 							result2 = new String(resultRecieved2);
-							logger.setMessage("Result received from RM2 after Broadcast"+result2);
+							logger.setMessage("Result received from RM2 after Broadcast" + result2);
 						} catch (SocketTimeoutException e) {
 							System.out.println("socket has timed out to send to replica 2");
 						}
-						socket3=new DatagramSocket(Ports.RM3UDPPort3);
+
 						DatagramPacket request3 = new DatagramPacket(serializedMsg, serializedMsg.length, ahost,
 								Ports.RM1UDPPort);
 						socket3.setSoTimeout(40000);
@@ -206,7 +220,7 @@ public class ReplicaManager3 implements Runnable {
 							socket3.receive(reply3);
 							byte[] resultRecieved3 = reply3.getData();
 							result3 = new String(resultRecieved3);
-							logger.setMessage("Result received from RM1 after Broadcast"+result3);
+							logger.setMessage("Result received from RM1 after Broadcast" + result3);
 						} catch (SocketTimeoutException e) {
 							System.out.println("socket has timed out to send to replica 1");
 						}
@@ -217,13 +231,18 @@ public class ReplicaManager3 implements Runnable {
 				reply = new DatagramPacket(result.getBytes(), result.getBytes().length, request.getAddress(),
 						request.getPort());
 				socket.send(reply);
+				
+				// socket=null;
+
 			}
 		} catch (Exception e) {
+			e.printStackTrace(System.out);
 		}
 	}
 
 	public static void HearBeat() {
 		// UDP to send the hearbeat to the frontEnd
+
 
 		TimerTask task = new TimerTask() {
 
