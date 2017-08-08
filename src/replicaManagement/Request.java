@@ -12,6 +12,7 @@ public class Request implements Serializable{
 	public final static int TRANSFER_REQUEST = 4;
 	public final static int GET_COUNT_REQUEST = 5;
 	public final static int LOGOUT_REQUEST = 6;
+	public final static int  RELIABLE_UDP= 7;
 
 	//TODO: DESTINATION FOR TRANSFER
 	public int typeOfRequest;

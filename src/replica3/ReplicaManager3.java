@@ -178,6 +178,8 @@ public class ReplicaManager3 implements Runnable {
 					logger.setMessage("Server response: (Total record number: " + recordInfo + " )");
 					System.out.println("RM3:Records are: " + recordInfo);
 					result = "true";
+				}else if(reqReceived.typeOfRequest==Request.RELIABLE_UDP){
+					result="true";
 				}
 				// after executing in its own server
 				// broadcasting to other RMs

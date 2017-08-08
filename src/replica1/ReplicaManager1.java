@@ -181,6 +181,8 @@ public class ReplicaManager1  implements Runnable {
 					System.out.println(">>>>sending to port"+request.getPort());
 					result = "true";
 					System.out.println("RM1: string send is"+result);
+				}else if(reqReceived.typeOfRequest==Request.RELIABLE_UDP){
+					result="true";
 				}
 				//after executing in its own server 
 				//broadcasting to other RMs
