@@ -43,6 +43,8 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 	public String managerID = "";
 	private EventLogger logger = null;
 	private ORB orb;
+	DatagramSocket socket = null;
+
 
 	public ORB getOrb() {
 		return orb;
@@ -77,9 +79,20 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 				
 			}
 		}
+		try {
+			socket = new DatagramSocket(this.UDPPort);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		record = new HashRecord(DBFileName);
 		this.logger = new EventLogger("RM2_"+this.serverName);
 	}
+	@Override
+	  public void finalize() {
+	    System.out.println(serverName + "In finalize");
+	    socket.close();
+	  }
 
 	
 	public static void main(String[] args) {
@@ -268,9 +281,7 @@ public class CenterServers extends FrontEndToReplicaManagerPOA implements Runnab
 
 	public void run() {
 		System.out.println("UDP Connection for : " + this.serverName + " is listening on port: " + this.UDPPort);
-		DatagramSocket socket = null;
 		try {
-			socket = new DatagramSocket(this.UDPPort);
 			DatagramPacket reply = null;
 			byte[] buffer = new byte[65536];
 			while (true) {
