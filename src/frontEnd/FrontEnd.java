@@ -333,10 +333,11 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	public void run() {
 		alive1 = true;
 		alive2 = true;
-		alive3 = true;
-		// boolean RM = false;
-		// boolean RM2 = false;
-		// boolean Rm3 = false;
+		alive3= true;
+		int rm1 = 0;
+		int rm2 = 0;
+		int rm3 = 0;
+
 		System.out.println("I am in run of Frontend!!!!");
 		checkIfAlive();
 		// To start the RM1
@@ -395,24 +396,46 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 						if (portFetched == Ports.RM1UDPPortHearbeat) {
 							replica_info.put(Ports.RM1UDPPortHearbeat, splitted[1].trim());
 							alive1 = true;
+							rm1++;
 							System.out.println("Status of RM1" + alive1);
 							if (splitted[1].trim() != null) {
 								alive1 = true;
 							}
+						}else if ((rm2-rm1)>1 || (rm3-rm1)>1){
+							alive1 = false;
+							rm1 = 0;
+							rm2 = 0;
+							rm3 = 0;
 						}
+							
 
-						else if (portFetched == Ports.RM2UDPPortHearbeat) {
+						if (portFetched == Ports.RM2UDPPortHearbeat) {
 							replica_info.put(Ports.RM2UDPPortHearbeat, splitted[1].trim());
 							alive2 = true;
+							rm2++; 
 							if (splitted[1].trim() != null) {
 								alive2 = true;
 							}
-						} else if (portFetched == Ports.RM3UDPPortHearbeat) {
+						} else if ((rm1-rm2)>1 || (rm3-rm2)>1){
+							alive2 = false;
+							rm1 = 0;
+							rm2 = 0;
+							rm3 = 0;
+						}
+							
+						
+						if (portFetched == Ports.RM3UDPPortHearbeat) {
 							replica_info.put(Ports.RM3UDPPortHearbeat, splitted[1].trim());
 							alive3 = true;
+							rm3++;
 							if (splitted[1].trim() != null) {
 								alive3 = true;
 							}
+						}else if ((rm1-rm3)>1 || (rm2-rm3)>1){
+							alive3 = false;
+							rm1 = 0;
+							rm2 = 0;
+							rm3 = 0;
 						}
 
 						System.out.println(replica_info.get(Ports.RM1UDPPortHearbeat));
