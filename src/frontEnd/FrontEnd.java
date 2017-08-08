@@ -49,35 +49,11 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		this.orb = orb;
 	}
 
-	/*public FrontEnd() {
+	public FrontEnd() {
 		this.UDPPort = Ports.FEUDPPort;
 		this.logger = new EventLogger("FrontEnd");
-		new Thread(new Runnable() {
-			public void run() {
-
-				ReplicaManager1.main(null);
-			}
-
-		}).start();
-
-		// To start the RM2
-		new Thread(new Runnable() {
-			public void run() {
-				ReplicaManager2.main(null);
-			}
-
-		}).start();
-
-		// To start the RM3
-		new Thread(new Runnable() {
-			public void run() {
-				ReplicaManager3.main(null);
-			}
-
-		}).start();
-
 	}
-*/
+	
 	public boolean createTRecord(String managerID, String firstName, String lastName, String address, String phone,
 			String specialization, String location) {
 		Request req = new Request();
@@ -226,16 +202,7 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 					else if (leaderHeartBeatPort == Ports.RM2UDPPortHearbeat)
 						leaderPort = Ports.RM2UDPPort;
 					else 
-						leaderPort = Ports.RM3UDPPort;					
-					
-					/*////Commented by Hamideh !!!!! how many times election
-					 * Integer information = Integer.parseInt(obj.Election(replica_info));
-					getKeyFromValue(replica_info, obj.Election(replica_info));
-					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
-					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;
-					*/
-
+						leaderPort = Ports.RM3UDPPort;									
 
 				} else {
 					//System.out.println("RM1 has failed and starting it now");
@@ -249,11 +216,6 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 				}
 				if (alive2 == false && leaderPort == Ports.RM2UDPPort) {
 					BullyAlgorithm obj = new BullyAlgorithm();
-					/*Integer information = Integer.parseInt(obj.Election(replica_info));
-					getKeyFromValue(replica_info, obj.Election(replica_info));
-					int keyValue = getKeyFromValue(replica_info, obj.Election(replica_info));
-					System.out.println("New Leader port is" + replica_info.get(information) + UDPPort + information);
-					leaderPort = keyValue;*/
 					String leaderId = obj.Election(replica_info);
 					int leaderHeartBeatPort = getKeyFromValue(replica_info, leaderId);
 					System.out.println("New Leader port is"  + leaderId);
@@ -309,12 +271,12 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 	}
 
 	public void run() {
-		alive1= false;
-		alive2 = false;
-		alive3= false;
-		boolean RM = false;
-		boolean RM2 = false;
-		boolean Rm3 = false;
+		alive1= true;
+		alive2 = true;
+		alive3= true;
+		//boolean RM = false;
+		//boolean RM2 = false;
+		//boolean Rm3 = false;
 		System.out.println("I am in run of Frontend!!!!");
 		checkIfAlive();
 		// To start the RM1
@@ -337,14 +299,14 @@ public class FrontEnd extends CORBAClassManagementPOA implements Runnable {
 		}).start();*/
 
 		// To start the RM3
-		new Thread(new Runnable() {
+		/*new Thread(new Runnable() {
 			public void run() {
 				ReplicaManager3.main(null);
 				alive3 = true;
 			}
 
 		}).start();
-		
+		*/
 		// UDP to listen to RM's Heartbeat
 
 		DatagramSocket datagramSocket = null;
